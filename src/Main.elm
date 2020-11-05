@@ -2,8 +2,14 @@ module Main exposing (main)
 
 import Browser exposing (Document, UrlRequest(..))
 import Browser.Navigation as Nav exposing (Key)
-import Html exposing (Html, button, div, header, span, text)
+import Category
+    exposing
+        ( Category
+        , emptyCategory
+        )
+import Html exposing (Html, button, div, header, text)
 import Html.Attributes exposing (class)
+import Html.Events exposing (onClick)
 import Json.Decode as D
 import Url exposing (Url)
 
@@ -29,12 +35,12 @@ main =
 
 
 type Model
-    = Empty
+    = App (List Category)
 
 
 init : D.Value -> Url -> Key -> ( Model, Cmd Msg )
 init _ _ _ =
-    ( Empty, Cmd.none )
+    ( App [], Cmd.none )
 
 
 onUrlRequest : UrlRequest -> Msg
@@ -54,6 +60,8 @@ onUrlChange url =
 type Msg
     = ClickedLink UrlRequest
     | ChangedUrl Url
+      --
+    | CreateCategory
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -62,8 +70,11 @@ update msg model =
         ( ClickedLink urlRequest, _ ) ->
             performUrlRequest urlRequest model
 
-        ( _, _ ) ->
+        ( ChangedUrl _, _ ) ->
             ( model, Cmd.none )
+
+        ( CreateCategory, App categories ) ->
+            ( App (emptyCategory :: categories), Cmd.none )
 
 
 performUrlRequest : UrlRequest -> Model -> ( Model, Cmd msg )
@@ -124,6 +135,7 @@ createCategory =
             , class "bg-blue-300"
             , class "font-bold text-white uppercase"
             , class "shadow-md hover:shadow-lg"
+            , onClick CreateCategory
             ]
             [ text "Create category" ]
         ]
