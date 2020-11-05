@@ -1,4 +1,4 @@
-module Button exposing (button, deleteButton)
+module Button exposing (button, deleteButton, undoButton)
 
 import Html exposing (Html, text)
 import Html.Attributes exposing (class)
@@ -20,8 +20,21 @@ button txt onClickEvent =
 deleteButton : String -> a -> Html a
 deleteButton txt onClickEvent =
     Html.button
-        [ class "px-6 py-2 rounded-full"
+        [ class "mx-1"
+        , class "px-6 py-2 rounded-full"
         , class "bg-red-700"
+        , class "font-bold text-white uppercase"
+        , class "shadow-md hover:shadow-lg hover:underline"
+        , onClick onClickEvent
+        ]
+        [ text txt ]
+
+undoButton : String -> a -> Html a
+undoButton txt onClickEvent =
+    Html.button
+        [ class "mx-1"
+        , class "px-6 py-2 rounded-full"
+        , class "bg-blue-700"
         , class "font-bold text-white uppercase"
         , class "shadow-md hover:shadow-lg hover:underline"
         , onClick onClickEvent

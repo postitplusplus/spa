@@ -2,7 +2,7 @@ module Main exposing (main)
 
 import Browser exposing (Document, UrlRequest(..))
 import Browser.Navigation as Nav exposing (Key)
-import Button exposing (button, deleteButton)
+import Button exposing (button, deleteButton, undoButton)
 import Category
     exposing
         ( Category
@@ -94,6 +94,7 @@ type Msg
       -- Delete Category
     | SetDeleteCategoryMode Int
     | ConfirmCategoryDeletion
+    | UndoCategoryDeletion
       -- Edit Category name
     | SetEditMode Int
     | EditCategoryName String
@@ -196,6 +197,12 @@ update msg model =
             ( Viewing (data.before ++ after), Cmd.none )
 
         ( ConfirmCategoryDeletion, _ ) ->
+            ( model, Cmd.none )
+
+        ( UndoCategoryDeletion, DeletingCategory data  ) ->
+            ( Viewing (data.before ++ data.current :: data.after), Cmd.none )
+
+        ( UndoCategoryDeletion, _ ) ->
             ( model, Cmd.none )
 
         -- Change Sticky color
@@ -483,7 +490,8 @@ viewDeleteCategory category =
                 , text "Associated notes will also be deleted."
                 , Html.br [] []
                 , Html.br [] []
-                , deleteButton "Confirm deletion" ConfirmCategoryDeletion
+                , deleteButton "Continue" ConfirmCategoryDeletion
+                , undoButton "Go back" UndoCategoryDeletion
                 ]
     in
     div
