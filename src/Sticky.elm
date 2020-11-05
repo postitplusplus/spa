@@ -1,4 +1,11 @@
-module Sticky exposing (Color(..), Sticky, emptySticky, getStickyColor)
+module Sticky exposing
+    ( Color(..)
+    , SplitSticky
+    , Sticky
+    , emptySticky
+    , getSplitStickies
+    , getStickyColor
+    )
 
 import Html
 import Html.Attributes exposing (class)
@@ -41,3 +48,34 @@ getStickyColor sticky =
 
         Teal ->
             class "bg-teal-200"
+
+
+type alias SplitSticky =
+    { before : List Sticky
+    , current : Sticky
+    , after : List Sticky
+    }
+
+
+getSplitStickies : List Sticky -> Int -> SplitSticky
+getSplitStickies stickies id =
+    let
+        mCurrent =
+            List.head <|
+                List.filter (\s -> s.id == id) stickies
+
+        current =
+            case mCurrent of
+                Nothing ->
+                    emptySticky 0
+
+                Just c ->
+                    c
+
+        before =
+            List.filter (\s -> s.id < id) stickies
+
+        after =
+            List.filter (\s -> s.id > id) stickies
+    in
+    SplitSticky before current after

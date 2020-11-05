@@ -7,13 +7,14 @@ import Category
     exposing
         ( Category
         , emptyCategory
+        , getSpliCategories
         )
 import Html exposing (Html, div, header, input, span, text)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
 import Icons
 import Json.Decode as D
-import Sticky exposing (Sticky)
+import Sticky exposing (Sticky, getSplitStickies)
 import Url exposing (Url)
 
 
@@ -52,10 +53,18 @@ type alias DeleteCategoryData =
     }
 
 
+type alias EditingStickyColorData =
+    { before : List Sticky
+    , after : List Sticky
+    , current : Sticky
+    }
+
+
 type Model
     = Viewing (List Category)
     | EditingCategory EditingCategoryData
     | DeletingCategory DeleteCategoryData
+    | EditingStickyColor EditingCategoryData EditingStickyColorData
 
 
 init : D.Value -> Url -> Key -> ( Model, Cmd Msg )
@@ -92,6 +101,8 @@ type Msg
     | CancelCategoryName
       -- Add note
     | AddNote Category
+      -- Change Color
+    | SetChangeColorMode Category Sticky
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -187,6 +198,26 @@ update msg model =
         ( ConfirmCategoryDeletion, _ ) ->
             ( model, Cmd.none )
 
+        -- Change Sticky color
+        ( SetChangeColorMode category sticky, Viewing categories ) ->
+            let
+                cs =
+                    getSpliCategories categories category.id
+
+                categoryData =
+                    EditingCategoryData cs.before cs.after cs.current cs.current
+
+                ss =
+                    getSplitStickies category.stickies sticky.id
+
+                stickyData =
+                    EditingStickyColorData ss.before ss.after ss.current
+            in
+            ( EditingStickyColor categoryData stickyData, Cmd.none )
+
+        ( SetChangeColorMode _ _, _ ) ->
+            ( model, Cmd.none )
+
 
 performUrlRequest : UrlRequest -> Model -> ( Model, Cmd msg )
 performUrlRequest request model =
@@ -218,6 +249,9 @@ view model =
 
                 DeletingCategory data ->
                     mainView <| viewDeletingCategory data.before data.current data.after
+
+                EditingStickyColor categoryData stickyData ->
+                    mainView <| viewChangeStickyColor categoryData stickyData
     in
     { title = title, body = [ body ] }
 
@@ -305,7 +339,7 @@ viewCategory category =
         , class "flex flex-col"
         ]
         [ viewCategoryHeader category
-        , viewStickies category.stickies
+        , viewStickies category category.stickies
         ]
 
 
@@ -339,17 +373,17 @@ viewCategoryHeader category =
         ]
 
 
-viewStickies : List Sticky -> Html Msg
-viewStickies stickies =
+viewStickies : Category -> List Sticky -> Html Msg
+viewStickies category stickies =
     div
         [ class "flex flow-row"
         , class "overflow-x-auto"
         ]
-        (List.map viewSticky stickies)
+        (List.map (viewSticky category) stickies)
 
 
-viewSticky : Sticky -> Html Msg
-viewSticky sticky =
+viewSticky : Category -> Sticky -> Html Msg
+viewSticky category sticky =
     div
         [ class "w-64 h-64 p-4 m-4 min-w-64 min-h-64"
         , class "flex flex-col"
@@ -361,6 +395,7 @@ viewSticky sticky =
             [ span [ class "flex-grow" ] []
             , Icons.color
                 [ class "w-6 mx-1 cursor-pointer"
+                , onClick (SetChangeColorMode category sticky)
                 ]
             , Icons.edit
                 [ class "w-6 mx-1 cursor-pointer"
@@ -383,10 +418,6 @@ viewSticky sticky =
 
 viewEditCategory : Category -> Html Msg
 viewEditCategory category =
-    let
-        postit =
-            div [] []
-    in
     div
         [ class "w-full"
         , class "my-4"
@@ -394,7 +425,7 @@ viewEditCategory category =
         , class "flex flex-col"
         ]
         [ viewEditCategoryHeader category
-        , postit
+        , viewStickies category category.stickies
         ]
 
 
@@ -454,9 +485,6 @@ viewDeleteCategory category =
                 , Html.br [] []
                 , deleteButton "Confirm deletion" ConfirmCategoryDeletion
                 ]
-
-        postit =
-            div [] []
     in
     div
         [ class "w-full"
@@ -466,7 +494,7 @@ viewDeleteCategory category =
         ]
         [ viewDeleteCategoryHeader category
         , warning
-        , postit
+        , viewStickies category category.stickies
         ]
 
 
@@ -483,6 +511,71 @@ viewDeleteCategoryHeader category =
             ]
             [ text category.name ]
         , div [ class "flex-grow" ] []
+        ]
+
+
+viewChangeStickyColor : EditingCategoryData -> EditingStickyColorData -> Html Msg
+viewChangeStickyColor catData stickyData =
+    let
+        before =
+            List.map viewCategory catData.before
+
+        current =
+            viewChangeStickyColorCategory catData.current stickyData
+
+        after =
+            List.map viewCategory catData.after
+    in
+    div [] (before ++ current :: after)
+
+
+viewChangeStickyColorCategory : Category -> EditingStickyColorData -> Html Msg
+viewChangeStickyColorCategory category stickyData =
+    let
+        before =
+            List.map (viewSticky category) stickyData.before
+
+        after =
+            List.map (viewSticky category) stickyData.after
+
+        current =
+            viewChangeStickyColorSticky stickyData.current
+
+        stickyList =
+            div
+                [ class "flex flow-row"
+                , class "overflow-x-auto"
+                ]
+                (before ++ current :: after)
+    in
+    div
+        [ class "w-full"
+        , class "my-4"
+        , class "bg-blue-100"
+        , class "flex flex-col"
+        ]
+        [ viewCategoryHeader category
+        , stickyList
+        ]
+
+
+viewChangeStickyColorSticky : Sticky -> Html Msg
+viewChangeStickyColorSticky sticky =
+    div
+        [ class "w-64 h-64 p-4 m-4 min-w-64 min-h-64"
+        , class "flex flex-col"
+        , class "shadow"
+        , Sticky.getStickyColor sticky
+        ]
+        [ div
+            [ class "flex flex-row pb-2" ]
+            [ span [ class "flex-grow" ] []
+            ]
+        , div
+            [ class "break-all"
+            , class "overflow-y-auto"
+            ]
+            [ text sticky.content ]
         ]
 
 
