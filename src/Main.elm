@@ -96,7 +96,8 @@ view _ =
 mainView : Html Msg
 mainView =
     div
-        [ class "flex flex-col"
+        [ class "w-full"
+        , class "flex flex-col"
         , class "items-stretch"
         ]
         [ noteHeader
@@ -107,7 +108,10 @@ mainView =
 noteHeader : Html Msg
 noteHeader =
     header
-        []
+        [ class "h-24"
+        , class "bg-blue-300"
+        , class "text-6xl text-center text-white"
+        ]
         [ text "My Notes" ]
 
 
