@@ -7,7 +7,7 @@ import Category
         ( Category
         , emptyCategory
         )
-import Html exposing (Html, button, div, header, text)
+import Html exposing (Html, button, div, header, span, text)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
 import Json.Decode as D
@@ -150,9 +150,34 @@ createCategory =
 
 viewCategory : Category -> Html Msg
 viewCategory category =
+    let
+        topBar =
+            div
+                [ class "flex flex-row"
+                , class "px-4 py-2"
+                ]
+                [ div [] [ text category.name ]
+                , div [ class "flex-grow" ] []
+                , div
+                    []
+                    [ text "A"
+                    , text "B"
+                    , text "C"
+                    ]
+                ]
+
+        postit =
+            div [] []
+    in
     div
-        []
-        [ text category.name ]
+        [ class "w-full"
+        , class "my-4"
+        , class "bg-blue-100"
+        , class "flex flex-col"
+        ]
+        [ topBar
+        , postit
+        ]
 
 
 
