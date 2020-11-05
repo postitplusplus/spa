@@ -2,6 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Spinner
+ * Normally shouldn't be necessary with newer versions of tailwindcss,
+ * but this is the only solution I found for now
+ */
+@keyframes spin {
+  to {
+		transform: rotate(360deg);
+	}
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Force overflow bar to have consistency */
+
 html {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -11,6 +27,10 @@ html:-webkit-scrollbar {
   display: none;
 }
 
+/* By default, we want a light blue background. We unfortunately can not set that
+ * locally in the Main.elm file.
+ */
 body {
-  background-color: #FFFFFF;
+  background-color: #E1F5FE;
+  padding-bottom: 4em;
 }
