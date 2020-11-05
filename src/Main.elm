@@ -149,21 +149,6 @@ createCategory =
 viewCategory : Category -> Html Msg
 viewCategory category =
     let
-        topBar =
-            div
-                [ class "flex flex-row"
-                , class "px-4 py-2"
-                ]
-                [ div [] [ text category.name ]
-                , div [ class "flex-grow" ] []
-                , div
-                    [ class "flex flex-row" ]
-                    [ span [ class "m-2 mr-6" ] [ button "Add note" AddNote ]
-                    , span [ class "m-2" ] [ Icons.edit ]
-                    , span [ class "m-2" ] [ Icons.delete ]
-                    ]
-                ]
-
         postit =
             div [] []
     in
@@ -173,8 +158,25 @@ viewCategory category =
         , class "bg-blue-100"
         , class "flex flex-col"
         ]
-        [ topBar
+        [ viewCategoryHeader category
         , postit
+        ]
+
+
+viewCategoryHeader : Category -> Html Msg
+viewCategoryHeader category =
+    div
+        [ class "flex flex-row"
+        , class "px-4 py-2"
+        ]
+        [ div [] [ text category.name ]
+        , div [ class "flex-grow" ] []
+        , div
+            [ class "flex flex-row" ]
+            [ span [ class "m-2 mr-6" ] [ button "Add note" AddNote ]
+            , span [ class "m-2" ] [ Icons.edit ]
+            , span [ class "m-2" ] [ Icons.delete ]
+            ]
         ]
 
 
