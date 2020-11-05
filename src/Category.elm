@@ -13,5 +13,5 @@ type alias Category =
 emptyCategory : Int -> Category
 emptyCategory id =
     { id = id
-    , name = "New Category"
+    , name = String.fromInt id ++ " - new category"
     }

@@ -38,7 +38,7 @@ main =
 
 type Model
     = Viewing (List Category)
-    | EditingCategory (List Category) Category (List Category)
+    | EditingCategory (List Category) Category Category (List Category)
 
 
 init : D.Value -> Url -> Key -> ( Model, Cmd Msg )
@@ -66,8 +66,11 @@ type Msg
       --
     | CreateCategory
     | AddNote
+      -- Edit Category name
     | SetEditMode Int
     | EditCategoryName String
+    | SaveCategoryName
+    | CancelCategoryName
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -82,20 +85,20 @@ update msg model =
         ( CreateCategory, Viewing categories ) ->
             ( Viewing (categories ++ [ emptyCategory (List.length categories) ]), Cmd.none )
 
-        ( CreateCategory, EditingCategory _ _ _ ) ->
+        ( CreateCategory, EditingCategory _ _ _ _ ) ->
             ( model, Cmd.none )
 
         ( AddNote, Viewing _ ) ->
             ( model, Cmd.none )
 
-        ( AddNote, EditingCategory _ _ _ ) ->
+        ( AddNote, EditingCategory _ _ _ _ ) ->
             ( model, Cmd.none )
 
         ( SetEditMode id, Viewing categories ) ->
             let
                 mCurrent =
                     List.head <|
-                        List.drop (id - 1) categories
+                        List.drop id categories
 
                 current =
                     case mCurrent of
@@ -111,15 +114,27 @@ update msg model =
                 after =
                     List.drop (id + 1) categories
             in
-            ( EditingCategory before current after, Cmd.none )
+            ( EditingCategory before current current after, Cmd.none )
 
-        ( SetEditMode _, EditingCategory _ _ _ ) ->
+        ( SetEditMode _, EditingCategory _ _ _ _ ) ->
             ( model, Cmd.none )
 
-        ( EditCategoryName name, EditingCategory b c a ) ->
-            ( EditingCategory b { c | name = name } a, Cmd.none )
+        ( EditCategoryName name, EditingCategory b c initial a ) ->
+            ( EditingCategory b { c | name = name } initial a, Cmd.none )
 
         ( EditCategoryName _, _ ) ->
+            ( model, Cmd.none )
+
+        ( SaveCategoryName, EditingCategory b c _ a ) ->
+            ( Viewing (b ++ c :: a), Cmd.none )
+
+        ( SaveCategoryName, _ ) ->
+            ( model, Cmd.none )
+
+        ( CancelCategoryName, EditingCategory b _ i a ) ->
+            ( Viewing (b ++ i :: a), Cmd.none )
+
+        ( CancelCategoryName, _ ) ->
             ( model, Cmd.none )
 
 
@@ -148,7 +163,7 @@ view model =
                 Viewing categories ->
                     mainView <| viewNormal categories
 
-                EditingCategory before current after ->
+                EditingCategory before current initial after ->
                     mainView <| viewEditingCategory before current after
     in
     { title = title, body = [ body ] }
@@ -287,22 +302,25 @@ viewEditCategoryHeader category =
         [ input
             [ class "uppercase h-100"
             , class "text-3xl font-bold text-gray-500"
+            , class "flex-grow"
             , Html.Attributes.value category.name
             , Html.Events.onInput EditCategoryName
             ]
             []
-        , div [ class "flex-grow" ] []
         , div
             [ class "flex flex-row"
             , class "items-center"
             ]
-            [ span [ class "m-2 mr-6" ] [ button "Add note" AddNote ]
+            [ span
+                [ class "m-2 cursor-pointer"
+                , onClick SaveCategoryName
+                ]
+                [ Icons.validate ]
             , span
                 [ class "m-2 cursor-pointer"
-                , onClick <| SetEditMode category.id
+                , onClick CancelCategoryName
                 ]
-                [ Icons.edit ]
-            , span [ class "m-2" ] [ Icons.delete ]
+                [ Icons.cancel ]
             ]
         ]
 
