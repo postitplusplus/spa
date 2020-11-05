@@ -44,9 +44,17 @@ type alias EditingCategoryData =
     }
 
 
+type alias DeleteCategoryData =
+    { before : List Category
+    , after : List Category
+    , current : Category
+    }
+
+
 type Model
     = Viewing (List Category)
     | EditingCategory EditingCategoryData
+    | DeletingCategory DeleteCategoryData
 
 
 init : D.Value -> Url -> Key -> ( Model, Cmd Msg )
@@ -74,6 +82,8 @@ type Msg
       --
     | CreateCategory
     | AddNote
+      -- Delete Category
+    | SetDeleteCategoryMode Int
       -- Edit Category name
     | SetEditMode Int
     | EditCategoryName String
@@ -93,41 +103,26 @@ update msg model =
         ( CreateCategory, Viewing categories ) ->
             ( Viewing (categories ++ [ emptyCategory (List.length categories) ]), Cmd.none )
 
-        ( CreateCategory, EditingCategory _ ) ->
+        ( CreateCategory, _ ) ->
             ( model, Cmd.none )
 
         ( AddNote, Viewing _ ) ->
             ( model, Cmd.none )
 
-        ( AddNote, EditingCategory _ ) ->
+        ( AddNote, _ ) ->
             ( model, Cmd.none )
 
         ( SetEditMode id, Viewing categories ) ->
             let
-                mCurrent =
-                    List.head <|
-                        List.drop id categories
-
-                current =
-                    case mCurrent of
-                        Nothing ->
-                            emptyCategory 0
-
-                        Just c ->
-                            c
-
-                before =
-                    List.take id categories
-
-                after =
-                    List.drop (id + 1) categories
+                split =
+                    Category.getSpliCategories categories id
 
                 data =
-                    EditingCategoryData before after current current
+                    EditingCategoryData split.before split.after split.current split.current
             in
             ( EditingCategory data, Cmd.none )
 
-        ( SetEditMode _, EditingCategory _ ) ->
+        ( SetEditMode _, _ ) ->
             ( model, Cmd.none )
 
         ( EditCategoryName name, EditingCategory data ) ->
@@ -153,6 +148,20 @@ update msg model =
             ( Viewing (data.before ++ data.initial :: data.after), Cmd.none )
 
         ( CancelCategoryName, _ ) ->
+            ( model, Cmd.none )
+
+        -- Delete Category
+        ( SetDeleteCategoryMode id, Viewing categories ) ->
+            let
+                split =
+                    Category.getSpliCategories categories id
+
+                data =
+                    DeleteCategoryData split.before split.after split.current
+            in
+            ( DeletingCategory data, Cmd.none )
+
+        ( SetDeleteCategoryMode _, _ ) ->
             ( model, Cmd.none )
 
 
@@ -183,6 +192,9 @@ view model =
 
                 EditingCategory data ->
                     mainView <| viewEditingCategory data.before data.current data.after
+
+                DeletingCategory data ->
+                    mainView <| viewDeletingCategory data.before data.current data.after
     in
     { title = title, body = [ body ] }
 
@@ -216,6 +228,23 @@ viewEditingCategory before current after =
 
         c =
             viewEditCategory current
+    in
+    div
+        []
+        (b ++ c :: a)
+
+
+viewDeletingCategory : List Category -> Category -> List Category -> Html Msg
+viewDeletingCategory before current after =
+    let
+        b =
+            List.map viewCategory before
+
+        a =
+            List.map viewCategory after
+
+        c =
+            viewDeleteCategory current
     in
     div
         []
@@ -284,7 +313,11 @@ viewCategoryHeader category =
                 , onClick <| SetEditMode category.id
                 ]
                 [ Icons.edit ]
-            , span [ class "m-2" ] [ Icons.delete ]
+            , span
+                [ class "m-2 cursor-pointer"
+                , onClick <| SetDeleteCategoryMode category.id
+                ]
+                [ Icons.delete ]
             ]
         ]
 
@@ -312,6 +345,62 @@ viewEditCategory category =
 
 viewEditCategoryHeader : Category -> Html Msg
 viewEditCategoryHeader category =
+    div
+        [ class "flex flex-row"
+        , class "items-center"
+        , class "px-4 py-2"
+        ]
+        [ input
+            [ class "uppercase h-100"
+            , class "px-4"
+            , class "text-3xl font-bold text-gray-500"
+            , class "flex-grow"
+            , class "rounded-full shadow-inner"
+            , Html.Attributes.value category.name
+            , Html.Events.onInput EditCategoryName
+            ]
+            []
+        , div
+            [ class "flex flex-row"
+            , class "items-center"
+            ]
+            [ span
+                [ class "m-2 cursor-pointer"
+                , onClick SaveCategoryName
+                ]
+                [ Icons.validate ]
+            , span
+                [ class "m-2 cursor-pointer"
+                , onClick CancelCategoryName
+                ]
+                [ Icons.cancel ]
+            ]
+        ]
+
+
+
+--- Deleting Category
+
+
+viewDeleteCategory : Category -> Html Msg
+viewDeleteCategory category =
+    let
+        postit =
+            div [] []
+    in
+    div
+        [ class "w-full"
+        , class "my-4"
+        , class "bg-blue-300"
+        , class "flex flex-col"
+        ]
+        [ viewDeleteCategoryHeader category
+        , postit
+        ]
+
+
+viewDeleteCategoryHeader : Category -> Html Msg
+viewDeleteCategoryHeader category =
     div
         [ class "flex flex-row"
         , class "items-center"
