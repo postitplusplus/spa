@@ -2,7 +2,7 @@ module Main exposing (main)
 
 import Browser exposing (Document, UrlRequest(..))
 import Browser.Navigation as Nav exposing (Key)
-import Html exposing (Html, div, text)
+import Html exposing (Html, div, span, text)
 import Html.Attributes exposing (class)
 import Json.Decode as D
 import Url exposing (Url)
@@ -99,7 +99,10 @@ viewLanding =
         [ class "flex flex-col"
         , class "items-stretch"
         ]
-        [ text "Almost empty"
+        [ span
+            [ class "text-2xl text-red-500"
+            ]
+            [ text "Non empty" ]
         ]
 
 
