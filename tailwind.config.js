@@ -9,7 +9,7 @@ module.exports = {
   variants: {
     borderRadius: ['responsive', 'last'],
     borderWidth: ['responsive', 'last', 'hover', 'focus'],
-    textDecoration: ['responsive', 'group-hover'],
+    textDecoration: ['hover', 'responsive', 'group-hover'],
   },
   plugins: [],
 }
