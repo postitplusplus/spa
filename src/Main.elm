@@ -2,7 +2,7 @@ module Main exposing (main)
 
 import Browser exposing (Document, UrlRequest(..))
 import Browser.Navigation as Nav exposing (Key)
-import Button exposing (button)
+import Button exposing (button, deleteButton)
 import Category
     exposing
         ( Category
@@ -84,6 +84,7 @@ type Msg
     | AddNote
       -- Delete Category
     | SetDeleteCategoryMode Int
+    | ConfirmCategoryDeletion
       -- Edit Category name
     | SetEditMode Int
     | EditCategoryName String
@@ -162,6 +163,16 @@ update msg model =
             ( DeletingCategory data, Cmd.none )
 
         ( SetDeleteCategoryMode _, _ ) ->
+            ( model, Cmd.none )
+
+        ( ConfirmCategoryDeletion, DeletingCategory data ) ->
+            let
+                after =
+                    List.map (\c -> { c | id = c.id - 1 }) data.after
+            in
+            ( Viewing (data.before ++ after), Cmd.none )
+
+        ( ConfirmCategoryDeletion, _ ) ->
             ( model, Cmd.none )
 
 
@@ -385,16 +396,34 @@ viewEditCategoryHeader category =
 viewDeleteCategory : Category -> Html Msg
 viewDeleteCategory category =
     let
+        warning =
+            div
+                [ class "w-2/3 m-auto my-4"
+                , class "p-4"
+                , class "bg-red-500"
+                , class "rounded-md"
+                , class "text-xl font-bold text-white"
+                , class "text-center"
+                ]
+                [ text "You are about to delete a category."
+                , Html.br [] []
+                , text "Associated notes will also be deleted."
+                , Html.br [] []
+                , Html.br [] []
+                , deleteButton "Confirm deletion" ConfirmCategoryDeletion
+                ]
+
         postit =
             div [] []
     in
     div
         [ class "w-full"
         , class "my-4"
-        , class "bg-blue-300"
+        , class "bg-red-300"
         , class "flex flex-col"
         ]
         [ viewDeleteCategoryHeader category
+        , warning
         , postit
         ]
 
@@ -406,31 +435,12 @@ viewDeleteCategoryHeader category =
         , class "items-center"
         , class "px-4 py-2"
         ]
-        [ input
+        [ div
             [ class "uppercase h-100"
-            , class "px-4"
-            , class "text-3xl font-bold text-gray-500"
-            , class "flex-grow"
-            , class "rounded-full shadow-inner"
-            , Html.Attributes.value category.name
-            , Html.Events.onInput EditCategoryName
+            , class "text-3xl font-bold text-gray-100"
             ]
-            []
-        , div
-            [ class "flex flex-row"
-            , class "items-center"
-            ]
-            [ span
-                [ class "m-2 cursor-pointer"
-                , onClick SaveCategoryName
-                ]
-                [ Icons.validate ]
-            , span
-                [ class "m-2 cursor-pointer"
-                , onClick CancelCategoryName
-                ]
-                [ Icons.cancel ]
-            ]
+            [ text category.name ]
+        , div [ class "flex-grow" ] []
         ]
 
 
