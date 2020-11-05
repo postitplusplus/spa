@@ -13,6 +13,7 @@ import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
 import Icons
 import Json.Decode as D
+import Sticky exposing (Sticky)
 import Url exposing (Url)
 
 
@@ -79,9 +80,8 @@ onUrlChange url =
 type Msg
     = ClickedLink UrlRequest
     | ChangedUrl Url
-      --
+      -- Create Category
     | CreateCategory
-    | AddNote
       -- Delete Category
     | SetDeleteCategoryMode Int
     | ConfirmCategoryDeletion
@@ -90,6 +90,8 @@ type Msg
     | EditCategoryName String
     | SaveCategoryName
     | CancelCategoryName
+      -- Add note
+    | AddNote Category
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -101,18 +103,28 @@ update msg model =
         ( ChangedUrl _, _ ) ->
             ( model, Cmd.none )
 
+        -- Create Category
         ( CreateCategory, Viewing categories ) ->
             ( Viewing (categories ++ [ emptyCategory (List.length categories) ]), Cmd.none )
 
         ( CreateCategory, _ ) ->
             ( model, Cmd.none )
 
-        ( AddNote, Viewing _ ) ->
+        -- Add Note
+        ( AddNote category, Viewing categories ) ->
+            let
+                updatedCategory =
+                    Category.addNewSticky category
+
+                split =
+                    Category.getSpliCategories categories category.id
+            in
+            ( Viewing (split.before ++ updatedCategory :: split.after), Cmd.none )
+
+        ( AddNote _, _ ) ->
             ( model, Cmd.none )
 
-        ( AddNote, _ ) ->
-            ( model, Cmd.none )
-
+        -- Category Edition
         ( SetEditMode id, Viewing categories ) ->
             let
                 split =
@@ -267,7 +279,7 @@ noteHeader =
     header
         [ class "h-24"
         , class "bg-blue-300"
-        , class "text-6xl font-bold text-center text-gray-200 uppercase"
+        , class "text-6xl font-bold text-center text-gray-100 uppercase"
         ]
         [ text "My Notes" ]
 
@@ -286,10 +298,6 @@ createCategory =
 
 viewCategory : Category -> Html Msg
 viewCategory category =
-    let
-        postit =
-            div [] []
-    in
     div
         [ class "w-full"
         , class "my-4"
@@ -297,7 +305,7 @@ viewCategory category =
         , class "flex flex-col"
         ]
         [ viewCategoryHeader category
-        , postit
+        , viewStickies category.stickies
         ]
 
 
@@ -318,18 +326,54 @@ viewCategoryHeader category =
             [ class "flex flex-row"
             , class "items-center"
             ]
-            [ span [ class "m-2 mr-6" ] [ button "Add note" AddNote ]
-            , span
-                [ class "m-2 cursor-pointer"
+            [ span [ class "m-2 mr-6" ] [ button "Add note" (AddNote category) ]
+            , Icons.edit
+                [ class "w-8 m-2 cursor-pointer"
                 , onClick <| SetEditMode category.id
                 ]
-                [ Icons.edit ]
-            , span
-                [ class "m-2 cursor-pointer"
+            , Icons.delete
+                [ class "w-8 m-2 cursor-pointer"
                 , onClick <| SetDeleteCategoryMode category.id
                 ]
-                [ Icons.delete ]
             ]
+        ]
+
+
+viewStickies : List Sticky -> Html Msg
+viewStickies stickies =
+    div
+        [ class "flex flow-row"
+        , class "overflow-x-auto"
+        ]
+        (List.map viewSticky stickies)
+
+
+viewSticky : Sticky -> Html Msg
+viewSticky sticky =
+    div
+        [ class "w-64 h-64 p-4 m-4 min-w-64 min-h-64"
+        , class "flex flex-col"
+        , class "shadow"
+        , Sticky.getStickyColor sticky
+        ]
+        [ div
+            [ class "flex flex-row pb-2" ]
+            [ span [ class "flex-grow" ] []
+            , Icons.color
+                [ class "w-6 mx-1 cursor-pointer"
+                ]
+            , Icons.edit
+                [ class "w-6 mx-1 cursor-pointer"
+                ]
+            , Icons.delete
+                [ class "w-6 cursor-pointer"
+                ]
+            ]
+        , div
+            [ class "break-all"
+            , class "overflow-y-auto"
+            ]
+            [ text sticky.content ]
         ]
 
 
@@ -375,16 +419,14 @@ viewEditCategoryHeader category =
             [ class "flex flex-row"
             , class "items-center"
             ]
-            [ span
-                [ class "m-2 cursor-pointer"
+            [ Icons.validate
+                [ class "w-8 m-2 cursor-pointer"
                 , onClick SaveCategoryName
                 ]
-                [ Icons.validate ]
-            , span
-                [ class "m-2 cursor-pointer"
+            , Icons.cancel
+                [ class "w-8 m-2 cursor-pointer"
                 , onClick CancelCategoryName
                 ]
-                [ Icons.cancel ]
             ]
         ]
 
