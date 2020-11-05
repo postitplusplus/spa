@@ -92,28 +92,35 @@ performUrlRequest request model =
 
 
 view : Model -> Document Msg
-view _ =
+view model =
     let
+        categories =
+            case model of
+                App c ->
+                    c
+
         title =
             "Post it, plus plus"
 
         body =
-            [ mainView
+            [ mainView categories
             ]
     in
     { title = title, body = body }
 
 
-mainView : Html Msg
-mainView =
+mainView : List Category -> Html Msg
+mainView categories =
     div
         [ class "w-full"
         , class "flex flex-col"
         , class "items-stretch"
         ]
-        [ noteHeader
-        , createCategory
-        ]
+        ([ noteHeader
+         , createCategory
+         ]
+            ++ List.map viewCategory categories
+        )
 
 
 noteHeader : Html Msg
@@ -139,6 +146,13 @@ createCategory =
             ]
             [ text "Create category" ]
         ]
+
+
+viewCategory : Category -> Html Msg
+viewCategory category =
+    div
+        []
+        [ text category.name ]
 
 
 
