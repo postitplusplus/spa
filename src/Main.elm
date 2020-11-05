@@ -207,6 +207,10 @@ createCategory =
         ]
 
 
+
+--- View category
+
+
 viewCategory : Category -> Html Msg
 viewCategory category =
     let
@@ -222,6 +226,38 @@ viewCategory category =
         [ viewCategoryHeader category
         , postit
         ]
+
+
+viewCategoryHeader : Category -> Html Msg
+viewCategoryHeader category =
+    div
+        [ class "flex flex-row"
+        , class "items-center"
+        , class "px-4 py-2"
+        ]
+        [ div
+            [ class "uppercase h-100"
+            , class "text-3xl font-bold text-gray-500"
+            ]
+            [ text category.name ]
+        , div [ class "flex-grow" ] []
+        , div
+            [ class "flex flex-row"
+            , class "items-center"
+            ]
+            [ span [ class "m-2 mr-6" ] [ button "Add note" AddNote ]
+            , span
+                [ class "m-2 cursor-pointer"
+                , onClick <| SetEditMode category.id
+                ]
+                [ Icons.edit ]
+            , span [ class "m-2" ] [ Icons.delete ]
+            ]
+        ]
+
+
+
+--- Edit category
 
 
 viewEditCategory : Category -> Html Msg
@@ -255,34 +291,6 @@ viewEditCategoryHeader category =
             , Html.Events.onInput EditCategoryName
             ]
             []
-        , div [ class "flex-grow" ] []
-        , div
-            [ class "flex flex-row"
-            , class "items-center"
-            ]
-            [ span [ class "m-2 mr-6" ] [ button "Add note" AddNote ]
-            , span
-                [ class "m-2 cursor-pointer"
-                , onClick <| SetEditMode category.id
-                ]
-                [ Icons.edit ]
-            , span [ class "m-2" ] [ Icons.delete ]
-            ]
-        ]
-
-
-viewCategoryHeader : Category -> Html Msg
-viewCategoryHeader category =
-    div
-        [ class "flex flex-row"
-        , class "items-center"
-        , class "px-4 py-2"
-        ]
-        [ div
-            [ class "uppercase h-100"
-            , class "text-3xl font-bold text-gray-500"
-            ]
-            [ text category.name ]
         , div [ class "flex-grow" ] []
         , div
             [ class "flex flex-row"
