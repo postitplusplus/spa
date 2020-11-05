@@ -5,13 +5,13 @@ module Category exposing
 
 
 type alias Category =
-    { name : String
-    , toRemove : String
+    { id : Int
+    , name : String
     }
 
 
-emptyCategory : Category
-emptyCategory =
-    { name = "New Category"
-    , toRemove = ""
+emptyCategory : Int -> Category
+emptyCategory id =
+    { id = id
+    , name = "New Category"
     }

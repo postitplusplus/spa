@@ -10,6 +10,7 @@ import Category
         )
 import Html exposing (Html, div, header, span, text)
 import Html.Attributes exposing (class)
+import Html.Events exposing (onClick)
 import Icons
 import Json.Decode as D
 import Url exposing (Url)
@@ -36,12 +37,13 @@ main =
 
 
 type Model
-    = App (List Category)
+    = Viewing (List Category)
+    | EditingCategory (List Category) Category (List Category)
 
 
 init : D.Value -> Url -> Key -> ( Model, Cmd Msg )
 init _ _ _ =
-    ( App [], Cmd.none )
+    ( Viewing [], Cmd.none )
 
 
 onUrlRequest : UrlRequest -> Msg
@@ -64,6 +66,7 @@ type Msg
       --
     | CreateCategory
     | AddNote
+    | SetEditMode Int
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -75,10 +78,22 @@ update msg model =
         ( ChangedUrl _, _ ) ->
             ( model, Cmd.none )
 
-        ( CreateCategory, App categories ) ->
-            ( App (emptyCategory :: categories), Cmd.none )
+        ( CreateCategory, Viewing categories ) ->
+            ( Viewing (categories ++ [ emptyCategory (List.length categories) ]), Cmd.none )
 
-        ( AddNote, App _ ) ->
+        ( CreateCategory, EditingCategory _ _ _ ) ->
+            ( model, Cmd.none )
+
+        ( AddNote, Viewing _ ) ->
+            ( model, Cmd.none )
+
+        ( AddNote, EditingCategory _ _ _ ) ->
+            ( model, Cmd.none )
+
+        ( SetEditMode id, Viewing categories ) ->
+            ( model, Cmd.none )
+
+        ( SetEditMode _, EditingCategory _ _ _ ) ->
             ( model, Cmd.none )
 
 
@@ -99,33 +114,43 @@ performUrlRequest request model =
 view : Model -> Document Msg
 view model =
     let
-        categories =
-            case model of
-                App c ->
-                    c
-
         title =
             "Post it, plus plus"
 
         body =
-            [ mainView categories
-            ]
+            case model of
+                Viewing categories ->
+                    mainView <| viewNormal categories
+
+                EditingCategory before current after ->
+                    mainView <| viewEditingCategory before current after
     in
-    { title = title, body = body }
+    { title = title, body = [ body ] }
 
 
-mainView : List Category -> Html Msg
-mainView categories =
+mainView : Html Msg -> Html Msg
+mainView page =
     div
         [ class "w-full"
         , class "flex flex-col"
         , class "items-stretch"
         ]
-        ([ noteHeader
-         , createCategory
-         ]
-            ++ List.map viewCategory categories
-        )
+        [ noteHeader
+        , createCategory
+        , page
+        ]
+
+
+viewNormal : List Category -> Html Msg
+viewNormal categories =
+    div [] (List.map viewCategory categories)
+
+
+viewEditingCategory : List Category -> Category -> List Category -> Html Msg
+viewEditingCategory before current after =
+    div
+        []
+        []
 
 
 noteHeader : Html Msg
@@ -181,7 +206,11 @@ viewCategoryHeader category =
             , class "items-center"
             ]
             [ span [ class "m-2 mr-6" ] [ button "Add note" AddNote ]
-            , span [ class "m-2" ] [ Icons.edit ]
+            , span
+                [ class "m-2 cursor-pointer"
+                , onClick <| SetEditMode category.id
+                ]
+                [ Icons.edit ]
             , span [ class "m-2" ] [ Icons.delete ]
             ]
         ]
