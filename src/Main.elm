@@ -2,12 +2,13 @@ module Main exposing (main)
 
 import Browser exposing (Document, UrlRequest(..))
 import Browser.Navigation as Nav exposing (Key)
+import Button exposing (button)
 import Category
     exposing
         ( Category
         , emptyCategory
         )
-import Html exposing (Html, button, div, header, span, text)
+import Html exposing (Html, div, header, text)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
 import Json.Decode as D
@@ -62,6 +63,7 @@ type Msg
     | ChangedUrl Url
       --
     | CreateCategory
+    | AddNote
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -75,6 +77,9 @@ update msg model =
 
         ( CreateCategory, App categories ) ->
             ( App (emptyCategory :: categories), Cmd.none )
+
+        ( AddNote, App _ ) ->
+            ( model, Cmd.none )
 
 
 performUrlRequest : UrlRequest -> Model -> ( Model, Cmd msg )
@@ -137,14 +142,7 @@ createCategory : Html Msg
 createCategory =
     div
         [ class "p-8" ]
-        [ button
-            [ class "px-6 py-2 rounded-full"
-            , class "bg-blue-300"
-            , class "font-bold text-white uppercase"
-            , class "shadow-md hover:shadow-lg"
-            , onClick CreateCategory
-            ]
-            [ text "Create category" ]
+        [ button "Create Category" CreateCategory
         ]
 
 
@@ -160,7 +158,7 @@ viewCategory category =
                 , div [ class "flex-grow" ] []
                 , div
                     []
-                    [ text "A"
+                    [ button "Add note" AddNote
                     , text "B"
                     , text "C"
                     ]
