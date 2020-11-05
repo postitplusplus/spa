@@ -284,7 +284,7 @@ viewEditCategory category =
     div
         [ class "w-full"
         , class "my-4"
-        , class "bg-red-100"
+        , class "bg-blue-300"
         , class "flex flex-col"
         ]
         [ viewEditCategoryHeader category
@@ -301,8 +301,10 @@ viewEditCategoryHeader category =
         ]
         [ input
             [ class "uppercase h-100"
+            , class "px-4"
             , class "text-3xl font-bold text-gray-500"
             , class "flex-grow"
+            , class "rounded-full shadow-inner"
             , Html.Attributes.value category.name
             , Html.Events.onInput EditCategoryName
             ]
