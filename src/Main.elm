@@ -133,7 +133,7 @@ noteHeader =
     header
         [ class "h-24"
         , class "bg-blue-300"
-        , class "text-6xl text-center text-white"
+        , class "text-6xl font-bold text-center text-gray-200 uppercase"
         ]
         [ text "My Notes" ]
 
