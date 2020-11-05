@@ -8,7 +8,7 @@ import Category
         ( Category
         , emptyCategory
         )
-import Html exposing (Html, div, header, span, text)
+import Html exposing (Html, div, header, input, span, text)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
 import Icons
@@ -67,6 +67,7 @@ type Msg
     | CreateCategory
     | AddNote
     | SetEditMode Int
+    | EditCategoryName String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -91,9 +92,34 @@ update msg model =
             ( model, Cmd.none )
 
         ( SetEditMode id, Viewing categories ) ->
-            ( model, Cmd.none )
+            let
+                mCurrent =
+                    List.head <|
+                        List.drop (id - 1) categories
+
+                current =
+                    case mCurrent of
+                        Nothing ->
+                            emptyCategory 0
+
+                        Just c ->
+                            c
+
+                before =
+                    List.take id categories
+
+                after =
+                    List.drop (id + 1) categories
+            in
+            ( EditingCategory before current after, Cmd.none )
 
         ( SetEditMode _, EditingCategory _ _ _ ) ->
+            ( model, Cmd.none )
+
+        ( EditCategoryName name, EditingCategory b c a ) ->
+            ( EditingCategory b { c | name = name } a, Cmd.none )
+
+        ( EditCategoryName _, _ ) ->
             ( model, Cmd.none )
 
 
@@ -148,9 +174,19 @@ viewNormal categories =
 
 viewEditingCategory : List Category -> Category -> List Category -> Html Msg
 viewEditingCategory before current after =
+    let
+        b =
+            List.map viewCategory before
+
+        a =
+            List.map viewCategory after
+
+        c =
+            viewEditCategory current
+    in
     div
         []
-        []
+        (b ++ c :: a)
 
 
 noteHeader : Html Msg
@@ -185,6 +221,53 @@ viewCategory category =
         ]
         [ viewCategoryHeader category
         , postit
+        ]
+
+
+viewEditCategory : Category -> Html Msg
+viewEditCategory category =
+    let
+        postit =
+            div [] []
+    in
+    div
+        [ class "w-full"
+        , class "my-4"
+        , class "bg-red-100"
+        , class "flex flex-col"
+        ]
+        [ viewEditCategoryHeader category
+        , postit
+        ]
+
+
+viewEditCategoryHeader : Category -> Html Msg
+viewEditCategoryHeader category =
+    div
+        [ class "flex flex-row"
+        , class "items-center"
+        , class "px-4 py-2"
+        ]
+        [ input
+            [ class "uppercase h-100"
+            , class "text-3xl font-bold text-gray-500"
+            , Html.Attributes.value category.name
+            , Html.Events.onInput EditCategoryName
+            ]
+            []
+        , div [ class "flex-grow" ] []
+        , div
+            [ class "flex flex-row"
+            , class "items-center"
+            ]
+            [ span [ class "m-2 mr-6" ] [ button "Add note" AddNote ]
+            , span
+                [ class "m-2 cursor-pointer"
+                , onClick <| SetEditMode category.id
+                ]
+                [ Icons.edit ]
+            , span [ class "m-2" ] [ Icons.delete ]
+            ]
         ]
 
 
