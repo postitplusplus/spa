@@ -8,9 +8,9 @@ import Category
         ( Category
         , emptyCategory
         )
-import Html exposing (Html, div, header, text)
+import Html exposing (Html, div, header, span, text)
 import Html.Attributes exposing (class)
-import Html.Events exposing (onClick)
+import Icons
 import Json.Decode as D
 import Url exposing (Url)
 
@@ -157,10 +157,10 @@ viewCategory category =
                 [ div [] [ text category.name ]
                 , div [ class "flex-grow" ] []
                 , div
-                    []
-                    [ button "Add note" AddNote
-                    , text "B"
-                    , text "C"
+                    [ class "flex flex-row" ]
+                    [ span [ class "m-2 mr-6" ] [ button "Add note" AddNote ]
+                    , span [ class "m-2" ] [ Icons.edit ]
+                    , span [ class "m-2" ] [ Icons.delete ]
                     ]
                 ]
 
