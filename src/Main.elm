@@ -36,9 +36,17 @@ main =
 --- MODEL ---
 
 
+type alias EditingCategoryData =
+    { before : List Category
+    , after : List Category
+    , current : Category
+    , initial : Category
+    }
+
+
 type Model
     = Viewing (List Category)
-    | EditingCategory (List Category) Category Category (List Category)
+    | EditingCategory EditingCategoryData
 
 
 init : D.Value -> Url -> Key -> ( Model, Cmd Msg )
@@ -85,13 +93,13 @@ update msg model =
         ( CreateCategory, Viewing categories ) ->
             ( Viewing (categories ++ [ emptyCategory (List.length categories) ]), Cmd.none )
 
-        ( CreateCategory, EditingCategory _ _ _ _ ) ->
+        ( CreateCategory, EditingCategory _ ) ->
             ( model, Cmd.none )
 
         ( AddNote, Viewing _ ) ->
             ( model, Cmd.none )
 
-        ( AddNote, EditingCategory _ _ _ _ ) ->
+        ( AddNote, EditingCategory _ ) ->
             ( model, Cmd.none )
 
         ( SetEditMode id, Viewing categories ) ->
@@ -113,26 +121,36 @@ update msg model =
 
                 after =
                     List.drop (id + 1) categories
-            in
-            ( EditingCategory before current current after, Cmd.none )
 
-        ( SetEditMode _, EditingCategory _ _ _ _ ) ->
+                data =
+                    EditingCategoryData before after current current
+            in
+            ( EditingCategory data, Cmd.none )
+
+        ( SetEditMode _, EditingCategory _ ) ->
             ( model, Cmd.none )
 
-        ( EditCategoryName name, EditingCategory b c initial a ) ->
-            ( EditingCategory b { c | name = name } initial a, Cmd.none )
+        ( EditCategoryName name, EditingCategory data ) ->
+            let
+                cur =
+                    data.current
+
+                newCurrent =
+                    { cur | name = name }
+            in
+            ( EditingCategory { data | current = newCurrent }, Cmd.none )
 
         ( EditCategoryName _, _ ) ->
             ( model, Cmd.none )
 
-        ( SaveCategoryName, EditingCategory b c _ a ) ->
-            ( Viewing (b ++ c :: a), Cmd.none )
+        ( SaveCategoryName, EditingCategory data ) ->
+            ( Viewing (data.before ++ data.current :: data.after), Cmd.none )
 
         ( SaveCategoryName, _ ) ->
             ( model, Cmd.none )
 
-        ( CancelCategoryName, EditingCategory b _ i a ) ->
-            ( Viewing (b ++ i :: a), Cmd.none )
+        ( CancelCategoryName, EditingCategory data ) ->
+            ( Viewing (data.before ++ data.initial :: data.after), Cmd.none )
 
         ( CancelCategoryName, _ ) ->
             ( model, Cmd.none )
@@ -163,8 +181,8 @@ view model =
                 Viewing categories ->
                     mainView <| viewNormal categories
 
-                EditingCategory before current initial after ->
-                    mainView <| viewEditingCategory before current after
+                EditingCategory data ->
+                    mainView <| viewEditingCategory data.before data.current data.after
     in
     { title = title, body = [ body ] }
 
