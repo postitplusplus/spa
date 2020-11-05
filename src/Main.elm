@@ -2,7 +2,7 @@ module Main exposing (main)
 
 import Browser exposing (Document, UrlRequest(..))
 import Browser.Navigation as Nav exposing (Key)
-import Html exposing (Html, div, span, text)
+import Html exposing (Html, button, div, header, span, text)
 import Html.Attributes exposing (class)
 import Json.Decode as D
 import Url exposing (Url)
@@ -87,22 +87,37 @@ view _ =
             "Post it, plus plus"
 
         body =
-            [ viewLanding
+            [ mainView
             ]
     in
     { title = title, body = body }
 
 
-viewLanding : Html Msg
-viewLanding =
+mainView : Html Msg
+mainView =
     div
         [ class "flex flex-col"
         , class "items-stretch"
         ]
-        [ span
-            [ class "text-2xl text-red-500"
-            ]
-            [ text "Non empty" ]
+        [ noteHeader
+        , createCategory
+        ]
+
+
+noteHeader : Html Msg
+noteHeader =
+    header
+        []
+        [ text "My Notes" ]
+
+
+createCategory : Html Msg
+createCategory =
+    div
+        []
+        [ button
+            []
+            [ text "Create category" ]
         ]
 
 
