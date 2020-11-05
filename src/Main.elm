@@ -118,9 +118,13 @@ noteHeader =
 createCategory : Html Msg
 createCategory =
     div
-        []
+        [ class "p-8" ]
         [ button
-            []
+            [ class "px-6 py-2 rounded-full"
+            , class "bg-blue-300"
+            , class "font-bold text-white uppercase"
+            , class "shadow-md hover:shadow-lg"
+            ]
             [ text "Create category" ]
         ]
 
