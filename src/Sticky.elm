@@ -19,6 +19,8 @@ type Color
     | Blue
     | Green
     | Teal
+    | Pink
+    | Purple
 
 
 type alias Sticky =
@@ -50,6 +52,12 @@ getColorAttribute color =
 
         Teal ->
             class "bg-teal-200"
+
+        Pink ->
+            class "bg-pink-200"
+
+        Purple ->
+            class "bg-purple-200"
 
 
 type alias SplitSticky =

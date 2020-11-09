@@ -624,9 +624,11 @@ viewColorChips =
         ]
         [ Sticky.colorChip Sticky.Yellow <| SelectStickyColor Sticky.Yellow
         , Sticky.colorChip Sticky.Peach <| SelectStickyColor Sticky.Peach
+        , Sticky.colorChip Sticky.Pink <| SelectStickyColor Sticky.Pink
+        , Sticky.colorChip Sticky.Purple <| SelectStickyColor Sticky.Purple
         , Sticky.colorChip Sticky.Blue <| SelectStickyColor Sticky.Blue
-        , Sticky.colorChip Sticky.Green <| SelectStickyColor Sticky.Green
         , Sticky.colorChip Sticky.Teal <| SelectStickyColor Sticky.Teal
+        , Sticky.colorChip Sticky.Green <| SelectStickyColor Sticky.Green
         ]
 
 
