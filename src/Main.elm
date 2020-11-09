@@ -104,6 +104,7 @@ type Msg
     | AddNote Category
       -- Change Color
     | SetChangeColorMode Category Sticky
+    | SelectStickyColor Sticky.Color
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -199,7 +200,7 @@ update msg model =
         ( ConfirmCategoryDeletion, _ ) ->
             ( model, Cmd.none )
 
-        ( UndoCategoryDeletion, DeletingCategory data  ) ->
+        ( UndoCategoryDeletion, DeletingCategory data ) ->
             ( Viewing (data.before ++ data.current :: data.after), Cmd.none )
 
         ( UndoCategoryDeletion, _ ) ->
@@ -223,6 +224,25 @@ update msg model =
             ( EditingStickyColor categoryData stickyData, Cmd.none )
 
         ( SetChangeColorMode _ _, _ ) ->
+            ( model, Cmd.none )
+
+        ( SelectStickyColor color, EditingStickyColor categoryData stickyData ) ->
+            let
+                sticky =
+                    stickyData.current
+
+                newSticky =
+                    { sticky | color = color }
+
+                current =
+                    categoryData.current
+
+                newCurrent =
+                    { current | stickies = stickyData.before ++ newSticky :: stickyData.after }
+            in
+            ( Viewing (categoryData.before ++ newCurrent :: categoryData.after), Cmd.none )
+
+        ( SelectStickyColor _, _ ) ->
             ( model, Cmd.none )
 
 
@@ -395,10 +415,10 @@ viewSticky category sticky =
         [ class "w-64 h-64 p-4 m-4 min-w-64 min-h-64"
         , class "flex flex-col"
         , class "shadow"
-        , Sticky.getStickyColor sticky
+        , Sticky.getColorAttribute sticky.color
         ]
         [ div
-            [ class "flex flex-row pb-2" ]
+            [ class "flex flex-row h-10 pb-2" ]
             [ span [ class "flex-grow" ] []
             , Icons.color
                 [ class "w-6 mx-1 cursor-pointer"
@@ -522,6 +542,10 @@ viewDeleteCategoryHeader category =
         ]
 
 
+
+--- Change sticky color
+
+
 viewChangeStickyColor : EditingCategoryData -> EditingStickyColorData -> Html Msg
 viewChangeStickyColor catData stickyData =
     let
@@ -573,17 +597,36 @@ viewChangeStickyColorSticky sticky =
         [ class "w-64 h-64 p-4 m-4 min-w-64 min-h-64"
         , class "flex flex-col"
         , class "shadow"
-        , Sticky.getStickyColor sticky
+        , Sticky.getColorAttribute sticky.color
         ]
         [ div
-            [ class "flex flex-row pb-2" ]
+            [ class "flex flex-row h-10 pb-2"
+            ]
             [ span [ class "flex-grow" ] []
+            , viewColorChips
             ]
         , div
             [ class "break-all"
             , class "overflow-y-auto"
             ]
             [ text sticky.content ]
+        ]
+
+
+viewColorChips : Html Msg
+viewColorChips =
+    div
+        [ class "flex flex-row"
+        , class "p-2"
+        , class "bg-gray-100"
+        , class "rounded-full"
+        , class "shadow"
+        ]
+        [ Sticky.colorChip Sticky.Yellow <| SelectStickyColor Sticky.Yellow
+        , Sticky.colorChip Sticky.Peach <| SelectStickyColor Sticky.Peach
+        , Sticky.colorChip Sticky.Blue <| SelectStickyColor Sticky.Blue
+        , Sticky.colorChip Sticky.Green <| SelectStickyColor Sticky.Green
+        , Sticky.colorChip Sticky.Teal <| SelectStickyColor Sticky.Teal
         ]
 
 

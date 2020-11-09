@@ -2,13 +2,15 @@ module Sticky exposing
     ( Color(..)
     , SplitSticky
     , Sticky
+    , colorChip
     , emptySticky
+    , getColorAttribute
     , getSplitStickies
-    , getStickyColor
     )
 
-import Html
+import Html exposing (Html, span)
 import Html.Attributes exposing (class)
+import Html.Events exposing (onClick)
 
 
 type Color
@@ -31,9 +33,9 @@ emptySticky id =
     Sticky id "Please edit the sticky's content" Yellow
 
 
-getStickyColor : Sticky -> Html.Attribute a
-getStickyColor sticky =
-    case sticky.color of
+getColorAttribute : Color -> Html.Attribute a
+getColorAttribute color =
+    case color of
         Yellow ->
             class "bg-yellow-200"
 
@@ -79,3 +81,17 @@ getSplitStickies stickies id =
             List.filter (\s -> s.id > id) stickies
     in
     SplitSticky before current after
+
+
+colorChip : Color -> a -> Html a
+colorChip color action =
+    span
+        [ getColorAttribute color
+        , class "w-4 h-4 rounded-full"
+        , class "mx-1"
+        , class "cursor-pointer"
+        , class "border border-gray-300"
+        , class "hover:shadow-outline"
+        , onClick action
+        ]
+        []
