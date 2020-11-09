@@ -7,3 +7,5 @@ You can then travel to the repository with a terminal and use the following comm
 yarn
 yarn dev
 ```
+
+Then go to the following link :  http://localhost:1234 
