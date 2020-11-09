@@ -1,40 +1,29 @@
-module Icons exposing (cancel, delete, edit, validate)
+module Icons exposing (cancel, color, delete, edit, validate)
 
-import Html exposing (Html, img)
-import Html.Attributes exposing (class, src)
-
-
-edit : Html a
-edit =
-    img
-        [ src "/res/edit.svg"
-        , class "w-8"
-        ]
-        []
+import Html exposing (Html, img, span)
+import Html.Attributes exposing (src)
 
 
-delete : Html a
-delete =
-    img
-        [ src "/res/delete.svg"
-        , class "w-8"
-        ]
-        []
+edit : List (Html.Attribute a) -> Html a
+edit attr =
+    span attr [ img [ src "/res/edit.svg" ] [] ]
 
 
-validate : Html a
-validate =
-    img
-        [ src "/res/validate.svg"
-        , class "w-8"
-        ]
-        []
+delete : List (Html.Attribute a) -> Html a
+delete attr =
+    span attr [ img [ src "/res/delete.svg" ] [] ]
 
 
-cancel : Html a
-cancel =
-    img
-        [ src "/res/cancel.svg"
-        , class "w-8"
-        ]
-        []
+validate : List (Html.Attribute a) -> Html a
+validate attr =
+    span attr [ img [ src "/res/validate.svg" ] [] ]
+
+
+cancel : List (Html.Attribute a) -> Html a
+cancel attr =
+    span attr [ img [ src "/res/cancel.svg" ] [] ]
+
+
+color : List (Html.Attribute a) -> Html a
+color attr =
+    span attr [ img [ src "/res/color.svg" ] [] ]

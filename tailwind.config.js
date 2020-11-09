@@ -4,6 +4,12 @@ module.exports = {
       manrope : [ 'manrope', "sans-serif" ]
     },
     extend: {
+      minWidth: {
+        '64': '16rem',
+      },
+      minHeight: {
+        '64': '16rem',
+      },
     },
   },
   variants: {
