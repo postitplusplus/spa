@@ -371,52 +371,52 @@ view model =
         body =
             case model of
                 Viewing categories ->
-                    mainView <| viewNormal categories
+                    mainView True <| viewNormal categories
 
                 EditingCategory data ->
-                    mainView <| viewEditingCategory data.before data.current data.after
+                    mainView False <| viewEditingCategory data.before data.current data.after
 
                 DeletingCategory data ->
-                    mainView <| viewDeletingCategory data.before data.current data.after
+                    mainView False <| viewDeletingCategory data.before data.current data.after
 
                 EditingStickyColor categoryData stickyData ->
-                    mainView <| viewChangeStickyColor categoryData stickyData
+                    mainView False <| viewChangeStickyColor categoryData stickyData
 
                 EditingStickyContent categoryData stickyData ->
-                    mainView <| viewEditStickyContent categoryData stickyData
+                    mainView False <| viewEditStickyContent categoryData stickyData
 
                 DeletingSticky categoryData stickyData ->
-                    mainView <| viewDeletingSticky categoryData stickyData
+                    mainView False <| viewDeletingSticky categoryData stickyData
     in
     { title = title, body = [ body ] }
 
 
-mainView : Html Msg -> Html Msg
-mainView page =
+mainView : Bool -> Html Msg -> Html Msg
+mainView active page =
     div
         [ class "w-full"
         , class "flex flex-col"
         , class "items-stretch"
         ]
         [ noteHeader
-        , createCategory
+        , createCategory active
         , page
         ]
 
 
 viewNormal : List Category -> Html Msg
 viewNormal categories =
-    div [] (List.map viewCategory categories)
+    div [] (List.map (viewCategory True) categories)
 
 
 viewEditingCategory : List Category -> Category -> List Category -> Html Msg
 viewEditingCategory before current after =
     let
         b =
-            List.map viewCategory before
+            List.map (viewCategory False) before
 
         a =
-            List.map viewCategory after
+            List.map (viewCategory False) after
 
         c =
             viewEditCategory current
@@ -430,10 +430,10 @@ viewDeletingCategory : List Category -> Category -> List Category -> Html Msg
 viewDeletingCategory before current after =
     let
         b =
-            List.map viewCategory before
+            List.map (viewCategory False) before
 
         a =
-            List.map viewCategory after
+            List.map (viewCategory False) after
 
         c =
             viewDeleteCategory current
@@ -453,11 +453,11 @@ noteHeader =
         [ text "My Notes" ]
 
 
-createCategory : Html Msg
-createCategory =
+createCategory : Bool -> Html Msg
+createCategory active =
     div
         [ class "p-8" ]
-        [ button "Create Category" CreateCategory
+        [ button active "Create Category" CreateCategory
         ]
 
 
@@ -465,21 +465,21 @@ createCategory =
 --- View category
 
 
-viewCategory : Category -> Html Msg
-viewCategory category =
+viewCategory : Bool -> Category -> Html Msg
+viewCategory active category =
     div
         [ class "w-full"
         , class "my-4"
         , class "bg-blue-100"
         , class "flex flex-col"
         ]
-        [ viewCategoryHeader category
-        , viewStickies category category.stickies
+        [ viewCategoryHeader active category
+        , viewStickies active category category.stickies
         ]
 
 
-viewCategoryHeader : Category -> Html Msg
-viewCategoryHeader category =
+viewCategoryHeader : Bool -> Category -> Html Msg
+viewCategoryHeader active category =
     div
         [ class "flex flex-row"
         , class "items-center"
@@ -495,29 +495,41 @@ viewCategoryHeader category =
             [ class "flex flex-row"
             , class "items-center"
             ]
-            [ span [ class "m-2 mr-6" ] [ button "Add note" (AddNote category) ]
+            [ span
+                [ class "m-2 mr-6" ]
+                [ button active "Add note" (AddNote category) ]
             , Icons.edit
-                [ class "w-8 m-2 cursor-pointer"
+                [ class "w-8 m-2"
+                , if active then
+                    class "cursor-pointer"
+
+                  else
+                    class "cursor-not-allowed"
                 , onClick <| SetEditMode category.id
                 ]
             , Icons.delete
-                [ class "w-8 m-2 cursor-pointer"
+                [ class "w-8 m-2"
+                , if active then
+                    class "cursor-pointer"
+
+                  else
+                    class "cursor-not-allowed"
                 , onClick <| SetDeleteCategoryMode category.id
                 ]
             ]
         ]
 
 
-viewStickies : Category -> List Sticky -> Html Msg
-viewStickies category stickies =
+viewStickies : Bool -> Category -> List Sticky -> Html Msg
+viewStickies active category stickies =
     div
         [ class "flex flex-wrap flow-row"
         ]
-        (List.map (viewSticky category) stickies)
+        (List.map (viewSticky active category) stickies)
 
 
-viewSticky : Category -> Sticky -> Html Msg
-viewSticky category sticky =
+viewSticky : Bool -> Category -> Sticky -> Html Msg
+viewSticky active category sticky =
     div
         [ class "w-64 h-64 p-4 m-4 min-w-64 min-h-64"
         , class "flex flex-col"
@@ -528,15 +540,30 @@ viewSticky category sticky =
             [ class "flex flex-row h-10 pb-2" ]
             [ span [ class "flex-grow" ] []
             , Icons.color
-                [ class "w-6 mx-1 cursor-pointer"
+                [ class "w-6 mx-1"
+                , if active then
+                    class "cursor-pointer"
+
+                  else
+                    class "cursor-not-allowed"
                 , onClick (SetChangeColorMode category sticky)
                 ]
             , Icons.edit
-                [ class "w-6 mx-1 cursor-pointer"
+                [ class "w-6 mx-1"
+                , if active then
+                    class "cursor-pointer"
+
+                  else
+                    class "cursor-not-allowed"
                 , onClick (SetEditStickyMode category sticky)
                 ]
             , Icons.delete
-                [ class "w-6 cursor-pointer"
+                [ class "w-6"
+                , if active then
+                    class "cursor-pointer"
+
+                  else
+                    class "cursor-not-allowed"
                 , onClick (SetDeleteStickyMode category sticky)
                 ]
             ]
@@ -561,7 +588,7 @@ viewEditCategory category =
         , class "flex flex-col"
         ]
         [ viewEditCategoryHeader category
-        , viewStickies category category.stickies
+        , viewStickies False category category.stickies
         ]
 
 
@@ -619,8 +646,8 @@ viewDeleteCategory category =
                 , text "Associated notes will also be deleted."
                 , Html.br [] []
                 , Html.br [] []
-                , deleteButton "Continue" ConfirmCategoryDeletion
-                , undoButton "Go back" UndoCategoryDeletion
+                , deleteButton True "Continue" ConfirmCategoryDeletion
+                , undoButton True "Go back" UndoCategoryDeletion
                 ]
     in
     div
@@ -631,7 +658,7 @@ viewDeleteCategory category =
         ]
         [ viewDeleteCategoryHeader category
         , warning
-        , viewStickies category category.stickies
+        , viewStickies False category category.stickies
         ]
 
 
@@ -659,13 +686,13 @@ viewChangeStickyColor : EditingCategoryData -> EditingStickyData -> Html Msg
 viewChangeStickyColor catData stickyData =
     let
         before =
-            List.map viewCategory catData.before
+            List.map (viewCategory False) catData.before
 
         current =
             viewChangeStickyColorCategory catData.current stickyData
 
         after =
-            List.map viewCategory catData.after
+            List.map (viewCategory False) catData.after
     in
     div [] (before ++ current :: after)
 
@@ -674,10 +701,10 @@ viewChangeStickyColorCategory : Category -> EditingStickyData -> Html Msg
 viewChangeStickyColorCategory category stickyData =
     let
         before =
-            List.map (viewSticky category) stickyData.before
+            List.map (viewSticky False category) stickyData.before
 
         after =
-            List.map (viewSticky category) stickyData.after
+            List.map (viewSticky False category) stickyData.after
 
         current =
             viewChangeStickyColorSticky stickyData.current
@@ -694,7 +721,7 @@ viewChangeStickyColorCategory category stickyData =
         , class "bg-blue-100"
         , class "flex flex-col"
         ]
-        [ viewCategoryHeader category
+        [ viewCategoryHeader False category
         , stickyList
         ]
 
@@ -748,13 +775,13 @@ viewEditStickyContent : EditingCategoryData -> EditingStickyData -> Html Msg
 viewEditStickyContent catData stickyData =
     let
         before =
-            List.map viewCategory catData.before
+            List.map (viewCategory False) catData.before
 
         current =
             viewEditStickyContentCategory catData.current stickyData
 
         after =
-            List.map viewCategory catData.after
+            List.map (viewCategory False) catData.after
     in
     div [] (before ++ current :: after)
 
@@ -763,10 +790,10 @@ viewEditStickyContentCategory : Category -> EditingStickyData -> Html Msg
 viewEditStickyContentCategory category stickyData =
     let
         before =
-            List.map (viewSticky category) stickyData.before
+            List.map (viewSticky False category) stickyData.before
 
         after =
-            List.map (viewSticky category) stickyData.after
+            List.map (viewSticky False category) stickyData.after
 
         current =
             viewEditSticky stickyData.current
@@ -783,7 +810,7 @@ viewEditStickyContentCategory category stickyData =
         , class "bg-blue-100"
         , class "flex flex-col"
         ]
-        [ viewCategoryHeader category
+        [ viewCategoryHeader False category
         , stickyList
         ]
 
@@ -833,13 +860,13 @@ viewDeletingSticky : EditingCategoryData -> EditingStickyData -> Html Msg
 viewDeletingSticky catData stickyData =
     let
         before =
-            List.map viewCategory catData.before
+            List.map (viewCategory False) catData.before
 
         current =
             viewDeleteStickyCategory catData.current stickyData
 
         after =
-            List.map viewCategory catData.after
+            List.map (viewCategory False) catData.after
     in
     div [] (before ++ current :: after)
 
@@ -848,10 +875,10 @@ viewDeleteStickyCategory : Category -> EditingStickyData -> Html Msg
 viewDeleteStickyCategory category stickyData =
     let
         before =
-            List.map (viewSticky category) stickyData.before
+            List.map (viewSticky False category) stickyData.before
 
         after =
-            List.map (viewSticky category) stickyData.after
+            List.map (viewSticky False category) stickyData.after
 
         current =
             viewDeleteSticky stickyData.current
@@ -868,7 +895,7 @@ viewDeleteStickyCategory category stickyData =
         , class "bg-blue-100"
         , class "flex flex-col"
         ]
-        [ viewCategoryHeader category
+        [ viewCategoryHeader False category
         , stickyList
         ]
 
