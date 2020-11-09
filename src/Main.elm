@@ -46,25 +46,19 @@ type alias EditingCategoryData =
     }
 
 
-type alias DeleteCategoryData =
-    { before : List Category
-    , after : List Category
-    , current : Category
-    }
-
-
-type alias EditingStickyColorData =
+type alias EditingStickyData =
     { before : List Sticky
     , after : List Sticky
     , current : Sticky
+    , initial : Sticky
     }
 
 
 type Model
     = Viewing (List Category)
     | EditingCategory EditingCategoryData
-    | DeletingCategory DeleteCategoryData
-    | EditingStickyColor EditingCategoryData EditingStickyColorData
+    | DeletingCategory EditingCategoryData
+    | EditingStickyColor EditingCategoryData EditingStickyData
 
 
 init : D.Value -> Url -> Key -> ( Model, Cmd Msg )
@@ -183,7 +177,7 @@ update msg model =
                     Category.getSpliCategories categories id
 
                 data =
-                    DeleteCategoryData split.before split.after split.current
+                    EditingCategoryData split.before split.after split.current split.current
             in
             ( DeletingCategory data, Cmd.none )
 
@@ -219,7 +213,7 @@ update msg model =
                     getSplitStickies category.stickies sticky.id
 
                 stickyData =
-                    EditingStickyColorData ss.before ss.after ss.current
+                    EditingStickyData ss.before ss.after ss.current ss.current
             in
             ( EditingStickyColor categoryData stickyData, Cmd.none )
 
@@ -403,8 +397,7 @@ viewCategoryHeader category =
 viewStickies : Category -> List Sticky -> Html Msg
 viewStickies category stickies =
     div
-        [ class "flex flow-row"
-        , class "overflow-x-auto"
+        [ class "flex flex-wrap flow-row"
         ]
         (List.map (viewSticky category) stickies)
 
@@ -546,7 +539,7 @@ viewDeleteCategoryHeader category =
 --- Change sticky color
 
 
-viewChangeStickyColor : EditingCategoryData -> EditingStickyColorData -> Html Msg
+viewChangeStickyColor : EditingCategoryData -> EditingStickyData -> Html Msg
 viewChangeStickyColor catData stickyData =
     let
         before =
@@ -561,7 +554,7 @@ viewChangeStickyColor catData stickyData =
     div [] (before ++ current :: after)
 
 
-viewChangeStickyColorCategory : Category -> EditingStickyColorData -> Html Msg
+viewChangeStickyColorCategory : Category -> EditingStickyData -> Html Msg
 viewChangeStickyColorCategory category stickyData =
     let
         before =
@@ -575,8 +568,7 @@ viewChangeStickyColorCategory category stickyData =
 
         stickyList =
             div
-                [ class "flex flow-row"
-                , class "overflow-x-auto"
+                [ class "flex flex-wrap flow-row"
                 ]
                 (before ++ current :: after)
     in
