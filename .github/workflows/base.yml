@@ -31,4 +31,3 @@ jobs:
         run: |
           yarn 
           yarn build
-          elm make src/Main.elm
