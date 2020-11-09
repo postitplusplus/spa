@@ -9,9 +9,14 @@ import Category
         , emptyCategory
         , getSpliCategories
         )
-import Html exposing (Html, div, header, input, span, text)
+import Helpers
+    exposing
+        ( EditingCategoryData
+        , EditingStickyData
+        )
+import Html exposing (Html, div, header, input, span, text, textarea)
 import Html.Attributes exposing (class)
-import Html.Events exposing (onClick)
+import Html.Events exposing (onClick, onInput)
 import Icons
 import Json.Decode as D
 import Sticky exposing (Sticky, getSplitStickies)
@@ -38,27 +43,12 @@ main =
 --- MODEL ---
 
 
-type alias EditingCategoryData =
-    { before : List Category
-    , after : List Category
-    , current : Category
-    , initial : Category
-    }
-
-
-type alias EditingStickyData =
-    { before : List Sticky
-    , after : List Sticky
-    , current : Sticky
-    , initial : Sticky
-    }
-
-
 type Model
     = Viewing (List Category)
     | EditingCategory EditingCategoryData
     | DeletingCategory EditingCategoryData
     | EditingStickyColor EditingCategoryData EditingStickyData
+    | EditingStickyContent EditingCategoryData EditingStickyData
 
 
 init : D.Value -> Url -> Key -> ( Model, Cmd Msg )
@@ -99,6 +89,11 @@ type Msg
       -- Change Color
     | SetChangeColorMode Category Sticky
     | SelectStickyColor Sticky.Color
+      -- Edit Sticky content
+    | SetEditStickyMode Category Sticky
+    | EditStickyContent String
+    | SaveStickyContent
+    | CancelStickyContent
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -239,6 +234,68 @@ update msg model =
         ( SelectStickyColor _, _ ) ->
             ( model, Cmd.none )
 
+        -- Editing Sticky content
+        ( SetEditStickyMode category sticky, Viewing categories ) ->
+            let
+                cs =
+                    getSpliCategories categories category.id
+
+                categoryData =
+                    EditingCategoryData cs.before cs.after cs.current cs.current
+
+                ss =
+                    getSplitStickies category.stickies sticky.id
+
+                stickyData =
+                    EditingStickyData ss.before ss.after ss.current ss.current
+            in
+            ( EditingStickyContent categoryData stickyData, Cmd.none )
+
+        ( SetEditStickyMode _ _, _ ) ->
+            ( model, Cmd.none )
+
+        ( EditStickyContent content, EditingStickyContent categoryData stickyData ) ->
+            let
+                sticky =
+                    stickyData.current
+
+                newSticky =
+                    { sticky | content = content }
+
+                newCategories =
+                    Helpers.updateCurrentCategory categoryData newSticky
+            in
+            ( EditingStickyContent newCategories { stickyData | current = newSticky }, Cmd.none )
+
+        ( EditStickyContent _, _ ) ->
+            ( model, Cmd.none )
+
+        ( SaveStickyContent, EditingStickyContent categoryData stickyData ) ->
+            let
+                current =
+                    categoryData.current
+
+                newCurrent =
+                    { current | stickies = stickyData.before ++ stickyData.current :: stickyData.after }
+            in
+            ( Viewing (categoryData.before ++ newCurrent :: categoryData.after), Cmd.none )
+
+        ( SaveStickyContent, _ ) ->
+            ( model, Cmd.none )
+
+        ( CancelStickyContent, EditingStickyContent categoryData stickyData ) ->
+            let
+                current =
+                    categoryData.current
+
+                newCurrent =
+                    { current | stickies = stickyData.before ++ stickyData.initial :: stickyData.after }
+            in
+            ( Viewing (categoryData.before ++ newCurrent :: categoryData.after), Cmd.none )
+
+        ( CancelStickyContent, _ ) ->
+            ( model, Cmd.none )
+
 
 performUrlRequest : UrlRequest -> Model -> ( Model, Cmd msg )
 performUrlRequest request model =
@@ -273,6 +330,9 @@ view model =
 
                 EditingStickyColor categoryData stickyData ->
                     mainView <| viewChangeStickyColor categoryData stickyData
+
+                EditingStickyContent categoryData stickyData ->
+                    mainView <| viewEditStickyContent categoryData stickyData
     in
     { title = title, body = [ body ] }
 
@@ -419,6 +479,7 @@ viewSticky category sticky =
                 ]
             , Icons.edit
                 [ class "w-6 mx-1 cursor-pointer"
+                , onClick (SetEditStickyMode category sticky)
                 ]
             , Icons.delete
                 [ class "w-6 cursor-pointer"
@@ -621,6 +682,91 @@ viewColorChips =
         , Sticky.colorChip Sticky.Blue <| SelectStickyColor Sticky.Blue
         , Sticky.colorChip Sticky.Teal <| SelectStickyColor Sticky.Teal
         , Sticky.colorChip Sticky.Green <| SelectStickyColor Sticky.Green
+        ]
+
+
+
+--- Editing Sticky content
+
+
+viewEditStickyContent : EditingCategoryData -> EditingStickyData -> Html Msg
+viewEditStickyContent catData stickyData =
+    let
+        before =
+            List.map viewCategory catData.before
+
+        current =
+            viewEditStickyContentCategory catData.current stickyData
+
+        after =
+            List.map viewCategory catData.after
+    in
+    div [] (before ++ current :: after)
+
+
+viewEditStickyContentCategory : Category -> EditingStickyData -> Html Msg
+viewEditStickyContentCategory category stickyData =
+    let
+        before =
+            List.map (viewSticky category) stickyData.before
+
+        after =
+            List.map (viewSticky category) stickyData.after
+
+        current =
+            viewEditSticky stickyData.current
+
+        stickyList =
+            div
+                [ class "flex flex-wrap flow-row"
+                ]
+                (before ++ current :: after)
+    in
+    div
+        [ class "w-full"
+        , class "my-4"
+        , class "bg-blue-100"
+        , class "flex flex-col"
+        ]
+        [ viewCategoryHeader category
+        , stickyList
+        ]
+
+
+viewEditSticky : Sticky -> Html Msg
+viewEditSticky sticky =
+    div
+        [ class "w-64 h-64 p-4 m-4 min-w-64 min-h-64"
+        , class "flex flex-col"
+        , class "shadow-outline"
+        , Sticky.getColorAttribute sticky.color
+        ]
+        [ div
+            [ class "flex flex-row h-10 pb-2"
+            ]
+            [ span [ class "flex-grow" ] []
+            , Icons.validate
+                [ class "w-6 mx-1 cursor-pointer"
+                , onClick SaveStickyContent
+                ]
+            , Icons.cancel
+                [ class "w-6 mx-1 cursor-pointer"
+                , onClick CancelStickyContent
+                ]
+            ]
+        , div
+            [ class "break-all"
+            , class "flex-grow"
+            ]
+            [ textarea
+                [ class "w-full h-full"
+                , class "resize-none"
+                , Sticky.getColorAttribute sticky.color
+                , onInput EditStickyContent
+                ]
+                [ text sticky.content
+                ]
+            ]
         ]
 
 
