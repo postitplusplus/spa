@@ -480,6 +480,14 @@ viewCategory active category =
 
 viewCategoryHeader : Bool -> Category -> Html Msg
 viewCategoryHeader active category =
+    let
+        categoryTitle =
+            if category.name == "" then
+                Category.placeholder
+
+            else
+                category.name
+    in
     div
         [ class "flex flex-row"
         , class "items-center"
@@ -488,24 +496,22 @@ viewCategoryHeader active category =
         [ div
             [ class "uppercase h-100"
             , class "text-3xl font-bold text-gray-500"
+            , onClick <| SetEditMode category.id
             ]
-            [ text category.name ]
+            [ text categoryTitle ]
         , div [ class "flex-grow" ] []
         , div
             [ class "flex flex-row"
             , class "items-center"
             ]
-            [ span
-                [ class "m-2 mr-6" ]
-                [ button active "Add note" (AddNote category) ]
-            , Icons.edit
+            [ Icons.add
                 [ class "w-8 m-2"
                 , if active then
                     class "cursor-pointer"
 
                   else
                     class "cursor-not-allowed"
-                , onClick <| SetEditMode category.id
+                , onClick <| AddNote category
                 ]
             , Icons.delete
                 [ class "w-8 m-2"
@@ -556,15 +562,6 @@ viewSticky active category sticky =
                     class "cursor-not-allowed"
                 , onClick (SetChangeColorMode category sticky)
                 ]
-            , Icons.edit
-                [ class "w-6 mx-1"
-                , if active then
-                    class "cursor-pointer"
-
-                  else
-                    class "cursor-not-allowed"
-                , onClick (SetEditStickyMode category sticky)
-                ]
             , Icons.delete
                 [ class "w-6"
                 , if active then
@@ -577,7 +574,8 @@ viewSticky active category sticky =
             ]
         , div
             [ class "break-all"
-            , class "overflow-y-auto"
+            , class "overflow-y-auto whitespace-pre-wrap"
+            , onClick (SetEditStickyMode category sticky)
             ]
             [ text stickyText ]
         ]
@@ -614,6 +612,7 @@ viewEditCategoryHeader category =
             , class "flex-grow"
             , class "rounded-full shadow-inner"
             , Html.Attributes.value category.name
+            , Html.Attributes.placeholder Category.placeholder
             , Html.Events.onInput EditCategoryName
             ]
             []

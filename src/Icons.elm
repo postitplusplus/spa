@@ -1,4 +1,4 @@
-module Icons exposing (cancel, color, delete, edit, validate)
+module Icons exposing (add, cancel, color, delete, edit, validate)
 
 import Html exposing (Html, img, span)
 import Html.Attributes exposing (src)
@@ -27,3 +27,8 @@ cancel attr =
 color : List (Html.Attribute a) -> Html a
 color attr =
     span attr [ img [ src "/res/color.svg" ] [] ]
+
+
+add : List (Html.Attribute a) -> Html a
+add attr =
+    span attr [ img [ src "/res/add.svg" ] [] ]

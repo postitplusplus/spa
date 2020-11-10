@@ -4,6 +4,7 @@ module Category exposing
     , addNewSticky
     , emptyCategory
     , getSpliCategories
+    , placeholder
     , rmSticky
     )
 
@@ -20,7 +21,7 @@ type alias Category =
 emptyCategory : Int -> Category
 emptyCategory id =
     { id = id
-    , name = String.fromInt id ++ " - new category"
+    , name = ""
     , stickies = []
     }
 
@@ -30,6 +31,11 @@ type alias SplitCategories =
     , current : Category
     , after : List Category
     }
+
+
+placeholder : String
+placeholder =
+    "Edit the category"
 
 
 getSpliCategories : List Category -> Int -> SplitCategories
