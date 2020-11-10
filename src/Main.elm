@@ -530,6 +530,14 @@ viewStickies active category stickies =
 
 viewSticky : Bool -> Category -> Sticky -> Html Msg
 viewSticky active category sticky =
+    let
+        stickyText =
+            if sticky.content == "" then
+                Sticky.placeholder
+
+            else
+                sticky.content
+    in
     div
         [ class "w-64 h-64 p-4 m-4 min-w-64 min-h-64"
         , class "flex flex-col"
@@ -571,7 +579,7 @@ viewSticky active category sticky =
             [ class "break-all"
             , class "overflow-y-auto"
             ]
-            [ text sticky.content ]
+            [ text stickyText ]
         ]
 
 
@@ -844,6 +852,7 @@ viewEditSticky sticky =
                 [ class "w-full h-full"
                 , class "resize-none"
                 , Sticky.getColorAttribute sticky.color
+                , Html.Attributes.placeholder Sticky.placeholder
                 , onInput EditStickyContent
                 ]
                 [ text sticky.content
