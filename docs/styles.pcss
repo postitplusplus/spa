@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Spinner
+ * Normally shouldn't be necessary with newer versions of tailwindcss,
+ * but this is the only solution I found for now
+ */
+@keyframes spin {
+  to {
+		transform: rotate(360deg);
+	}
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Force overflow bar to have consistency */
+
+html {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  font-family: manrope;
+}
+
+html:-webkit-scrollbar {
+  display: none;
+}

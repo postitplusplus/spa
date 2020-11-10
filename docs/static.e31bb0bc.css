@@ -1,0 +1,74 @@
+@charset "UTF-8";
+
+@font-face {
+	font-family: 'Manrope';
+	font-display: swap;
+	src: url('/manrope-extrabold.3b39bd5a.woff2') format('woff2'),
+		 url('/manrope-extrabold.40973a84.woff') format('woff'),
+		 url('/manrope-extrabold.fe73ae82.otf') format('truetype'); /* Android, iOS */
+	font-style: normal;
+	font-weight: 800;
+}
+
+@font-face {
+	font-family: 'Manrope';
+	font-display: swap;
+	src: url('/manrope-bold.3c35a21e.woff2') format('woff2'),
+		url('/manrope-bold.9096b46e.woff') format('woff'),
+		url('/manrope-bold.11194df1.otf') format('truetype');
+	font-style: normal;
+	font-weight: 700;
+}
+
+@font-face {
+	font-family: 'Manrope';
+	font-display: swap;
+	src: url('/manrope-semibold.2ca13d50.woff2') format('woff2'),
+		url('/manrope-semibold.38249b0c.woff') format('woff'),
+		url('/manrope-semibold.61f2cb73.otf') format('truetype');
+	font-style: normal;
+	font-weight: 600;
+}
+
+@font-face {
+	font-family: 'Manrope';
+	font-display: swap;
+	src: url('/manrope-medium.a1ffcef8.woff2') format('woff2'),
+		url('/manrope-medium.554db1e9.woff') format('woff'),
+		url('/manrope-medium.55cd57dd.otf') format('truetype');
+	font-style: normal;
+	font-weight: 500;
+}
+
+@font-face {
+	font-family: 'Manrope';
+	font-display: swap;
+	src: url('/manrope-regular.2010cb2d.woff2') format('woff2'),
+		url('/manrope-regular.44962589.woff') format('woff'),
+		url('/manrope-regular.6c3a967f.otf') format('truetype');
+	font-style: normal;
+	font-weight: 400;
+}
+
+@font-face {
+	font-family: 'Manrope';
+	font-display: swap;
+	src: url('/manrope-light.bae850e3.woff2') format('woff2'),
+		url('/manrope-light.edf9a6bc.woff') format('woff'),
+		url('/manrope-light.719f4e87.otf') format('truetype');
+	font-style: normal;
+	font-weight: 300;
+}
+
+@font-face {
+	font-family: 'Manrope';
+	font-display: swap;
+	src: url('/manrope-thin.f94ef451.woff2') format('woff2'),
+		url('/manrope-thin.cfd54cd0.woff') format('woff'),
+		url('/manrope-thin.698e6d9e.otf') format('truetype');
+	font-style: normal;
+	font-weight: 200;
+}
+
+
+/*# sourceMappingURL=/static.e31bb0bc.css.map */
