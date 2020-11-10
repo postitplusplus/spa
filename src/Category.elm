@@ -15,6 +15,7 @@ type alias Category =
     { id : Int
     , name : String
     , stickies : List Sticky
+    , open : Bool
     }
 
 
@@ -23,6 +24,7 @@ emptyCategory id =
     { id = id
     , name = ""
     , stickies = []
+    , open = True
     }
 
 

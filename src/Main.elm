@@ -76,6 +76,7 @@ type Msg
     | ChangedUrl Url
       -- Create Category
     | CreateCategory
+    | ToggleCategory Int
       -- Delete Category
     | SetDeleteCategoryMode Int
     | ConfirmCategoryDeletion
@@ -115,6 +116,25 @@ update msg model =
             ( Viewing (categories ++ [ emptyCategory (List.length categories) ]), Cmd.none )
 
         ( CreateCategory, _ ) ->
+            ( model, Cmd.none )
+
+        ( ToggleCategory id, Viewing categories ) ->
+            let
+                currentCategories =
+                    Category.getSpliCategories categories id
+
+                current =
+                    currentCategories.current
+
+                newCurrent =
+                    { current | open = not current.open }
+
+                newCategories =
+                    currentCategories.before ++ newCurrent :: currentCategories.after
+            in
+            ( Viewing newCategories, Cmd.none )
+
+        ( ToggleCategory _, _ ) ->
             ( model, Cmd.none )
 
         -- Add Note
@@ -456,8 +476,28 @@ noteHeader =
 createCategory : Bool -> Html Msg
 createCategory active =
     div
-        [ class "p-8" ]
-        [ button active "Create Category" CreateCategory
+        [ class "flex flex-row items-center"
+        , class "fixed bottom-0 right-0"
+        , class "mb-16 mr-16"
+        ]
+        [ Html.button
+            [ class "flex flex-row items-center h-8"
+            , class "p-2 px-4"
+            , class "h-12"
+            , class "rounded-full"
+            , class "bg-blue-300"
+            , class "font-bold text-white uppercase"
+            , class "shadow-lg hover:shadow-xl"
+            , if active then
+                class "cursor-pointer"
+
+              else
+                class "cursor-not-allowed"
+            , onClick CreateCategory
+            ]
+            [ Icons.plus [ class "pr-2" ]
+            , span [] [ text "Category" ]
+            ]
         ]
 
 
@@ -474,7 +514,11 @@ viewCategory active category =
         , class "flex flex-col"
         ]
         [ viewCategoryHeader active category
-        , viewStickies active category category.stickies
+        , if category.open then
+            viewStickies active category category.stickies
+
+          else
+            div [] []
         ]
 
 
@@ -487,6 +531,44 @@ viewCategoryHeader active category =
 
             else
                 category.name
+
+        toggleCategory =
+            if category.open then
+                Icons.shrink
+                    [ class "w-8 m-2 mx-4 text-gray-400"
+                    , if active then
+                        class "cursor-pointer"
+
+                      else
+                        class "cursor-not-allowed"
+                    , onClick <| ToggleCategory category.id
+                    ]
+
+            else
+                Icons.expand
+                    [ class "w-8 m-2 mx-4 text-gray-400"
+                    , if active then
+                        class "cursor-pointer"
+
+                      else
+                        class "cursor-not-allowed"
+                    , onClick <| ToggleCategory category.id
+                    ]
+
+        addIcon =
+            if category.open then
+                Icons.add
+                    [ class "w-8 m-2"
+                    , if active then
+                        class "cursor-pointer"
+
+                      else
+                        class "cursor-not-allowed"
+                    , onClick <| AddNote category
+                    ]
+
+            else
+                span [] []
     in
     div
         [ class "flex flex-row"
@@ -495,24 +577,17 @@ viewCategoryHeader active category =
         ]
         [ div
             [ class "uppercase h-100"
-            , class "text-3xl font-bold text-gray-500"
+            , class "text-3xl font-bold text-gray-600"
             , onClick <| SetEditMode category.id
             ]
             [ text categoryTitle ]
+        , toggleCategory
         , div [ class "flex-grow" ] []
         , div
             [ class "flex flex-row"
             , class "items-center"
             ]
-            [ Icons.add
-                [ class "w-8 m-2"
-                , if active then
-                    class "cursor-pointer"
-
-                  else
-                    class "cursor-not-allowed"
-                , onClick <| AddNote category
-                ]
+            [ addIcon
             , Icons.delete
                 [ class "w-8 m-2"
                 , if active then
