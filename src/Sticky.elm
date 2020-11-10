@@ -6,6 +6,7 @@ module Sticky exposing
     , emptySticky
     , getColorAttribute
     , getSplitStickies
+    , placeholder
     )
 
 import Html exposing (Html, span)
@@ -32,7 +33,12 @@ type alias Sticky =
 
 emptySticky : Int -> Sticky
 emptySticky id =
-    Sticky id "Please edit the sticky's content" Yellow
+    Sticky id "" Yellow
+
+
+placeholder : String
+placeholder =
+    "Edit the Sticky"
 
 
 getColorAttribute : Color -> Html.Attribute a

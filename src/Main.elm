@@ -76,6 +76,7 @@ type Msg
     | ChangedUrl Url
       -- Create Category
     | CreateCategory
+    | ToggleCategory Int
       -- Delete Category
     | SetDeleteCategoryMode Int
     | ConfirmCategoryDeletion
@@ -115,6 +116,25 @@ update msg model =
             ( Viewing (categories ++ [ emptyCategory (List.length categories) ]), Cmd.none )
 
         ( CreateCategory, _ ) ->
+            ( model, Cmd.none )
+
+        ( ToggleCategory id, Viewing categories ) ->
+            let
+                currentCategories =
+                    Category.getSpliCategories categories id
+
+                current =
+                    currentCategories.current
+
+                newCurrent =
+                    { current | open = not current.open }
+
+                newCategories =
+                    currentCategories.before ++ newCurrent :: currentCategories.after
+            in
+            ( Viewing newCategories, Cmd.none )
+
+        ( ToggleCategory _, _ ) ->
             ( model, Cmd.none )
 
         -- Add Note
@@ -456,8 +476,28 @@ noteHeader =
 createCategory : Bool -> Html Msg
 createCategory active =
     div
-        [ class "p-8" ]
-        [ button active "Create Category" CreateCategory
+        [ class "flex flex-row items-center"
+        , class "fixed bottom-0 right-0"
+        , class "mb-16 mr-16"
+        ]
+        [ Html.button
+            [ class "flex flex-row items-center h-8"
+            , class "p-2 px-4"
+            , class "h-12"
+            , class "rounded-full"
+            , class "bg-blue-300"
+            , class "font-bold text-white uppercase"
+            , class "shadow-lg hover:shadow-xl"
+            , if active then
+                class "cursor-pointer"
+
+              else
+                class "cursor-not-allowed"
+            , onClick CreateCategory
+            ]
+            [ Icons.plus [ class "pr-2" ]
+            , span [] [ text "Category" ]
+            ]
         ]
 
 
@@ -474,12 +514,62 @@ viewCategory active category =
         , class "flex flex-col"
         ]
         [ viewCategoryHeader active category
-        , viewStickies active category category.stickies
+        , if category.open then
+            viewStickies active category category.stickies
+
+          else
+            div [] []
         ]
 
 
 viewCategoryHeader : Bool -> Category -> Html Msg
 viewCategoryHeader active category =
+    let
+        categoryTitle =
+            if category.name == "" then
+                Category.placeholder
+
+            else
+                category.name
+
+        toggleCategory =
+            if category.open then
+                Icons.shrink
+                    [ class "w-8 m-2 mx-4 text-gray-400"
+                    , if active then
+                        class "cursor-pointer"
+
+                      else
+                        class "cursor-not-allowed"
+                    , onClick <| ToggleCategory category.id
+                    ]
+
+            else
+                Icons.expand
+                    [ class "w-8 m-2 mx-4 text-gray-400"
+                    , if active then
+                        class "cursor-pointer"
+
+                      else
+                        class "cursor-not-allowed"
+                    , onClick <| ToggleCategory category.id
+                    ]
+
+        addIcon =
+            if category.open then
+                Icons.add
+                    [ class "w-8 m-2"
+                    , if active then
+                        class "cursor-pointer"
+
+                      else
+                        class "cursor-not-allowed"
+                    , onClick <| AddNote category
+                    ]
+
+            else
+                span [] []
+    in
     div
         [ class "flex flex-row"
         , class "items-center"
@@ -487,26 +577,17 @@ viewCategoryHeader active category =
         ]
         [ div
             [ class "uppercase h-100"
-            , class "text-3xl font-bold text-gray-500"
+            , class "text-3xl font-bold text-gray-600"
+            , onClick <| SetEditMode category.id
             ]
-            [ text category.name ]
+            [ text categoryTitle ]
+        , toggleCategory
         , div [ class "flex-grow" ] []
         , div
             [ class "flex flex-row"
             , class "items-center"
             ]
-            [ span
-                [ class "m-2 mr-6" ]
-                [ button active "Add note" (AddNote category) ]
-            , Icons.edit
-                [ class "w-8 m-2"
-                , if active then
-                    class "cursor-pointer"
-
-                  else
-                    class "cursor-not-allowed"
-                , onClick <| SetEditMode category.id
-                ]
+            [ addIcon
             , Icons.delete
                 [ class "w-8 m-2"
                 , if active then
@@ -530,6 +611,14 @@ viewStickies active category stickies =
 
 viewSticky : Bool -> Category -> Sticky -> Html Msg
 viewSticky active category sticky =
+    let
+        stickyText =
+            if sticky.content == "" then
+                Sticky.placeholder
+
+            else
+                sticky.content
+    in
     div
         [ class "w-64 h-64 p-4 m-4 min-w-64 min-h-64"
         , class "flex flex-col"
@@ -548,15 +637,6 @@ viewSticky active category sticky =
                     class "cursor-not-allowed"
                 , onClick (SetChangeColorMode category sticky)
                 ]
-            , Icons.edit
-                [ class "w-6 mx-1"
-                , if active then
-                    class "cursor-pointer"
-
-                  else
-                    class "cursor-not-allowed"
-                , onClick (SetEditStickyMode category sticky)
-                ]
             , Icons.delete
                 [ class "w-6"
                 , if active then
@@ -569,9 +649,10 @@ viewSticky active category sticky =
             ]
         , div
             [ class "break-all"
-            , class "overflow-y-auto"
+            , class "overflow-y-auto whitespace-pre-wrap"
+            , onClick (SetEditStickyMode category sticky)
             ]
-            [ text sticky.content ]
+            [ text stickyText ]
         ]
 
 
@@ -606,6 +687,7 @@ viewEditCategoryHeader category =
             , class "flex-grow"
             , class "rounded-full shadow-inner"
             , Html.Attributes.value category.name
+            , Html.Attributes.placeholder Category.placeholder
             , Html.Events.onInput EditCategoryName
             ]
             []
@@ -844,6 +926,7 @@ viewEditSticky sticky =
                 [ class "w-full h-full"
                 , class "resize-none"
                 , Sticky.getColorAttribute sticky.color
+                , Html.Attributes.placeholder Sticky.placeholder
                 , onInput EditStickyContent
                 ]
                 [ text sticky.content
