@@ -424,6 +424,7 @@ mainView active page =
         [ class "w-full"
         , class "flex flex-col"
         , class "items-stretch"
+        , class "mb-32"
         ]
         [ noteHeader
         , createCategory active
@@ -655,7 +656,7 @@ viewSticky active category sticky =
                 ]
             ]
         , div
-            [ class "break-all"
+            [ class "break-words"
             , class "overflow-y-auto whitespace-pre-wrap"
             , onClick (SetEditStickyMode category sticky)
             ]
@@ -831,7 +832,7 @@ viewChangeStickyColorSticky sticky =
             , viewColorChips
             ]
         , div
-            [ class "break-all"
+            [ class "break-words"
             , class "overflow-y-auto whitespace-pre-wrap"
             ]
             [ text sticky.content ]
@@ -927,7 +928,7 @@ viewEditSticky sticky =
                 ]
             ]
         , div
-            [ class "break-all"
+            [ class "break-words"
             , class "flex-grow"
             ]
             [ textarea
@@ -1019,7 +1020,7 @@ viewDeleteSticky sticky =
                 ]
             ]
         , div
-            [ class "break-all"
+            [ class "break-words"
             , class "overflow-y-auto whitespace-pre-wrap"
             , class "text-gray-800"
             ]
