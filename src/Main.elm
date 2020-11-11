@@ -1,6 +1,7 @@
 module Main exposing (main)
 
 import Browser exposing (Document, UrlRequest(..))
+import Browser.Dom
 import Browser.Navigation as Nav exposing (Key)
 import Button exposing (button, deleteButton, undoButton)
 import Category
@@ -20,6 +21,7 @@ import Html.Events exposing (onClick, onInput)
 import Icons
 import Json.Decode as D
 import Sticky exposing (Sticky, getSplitStickies)
+import Task
 import Url exposing (Url)
 
 
@@ -100,6 +102,8 @@ type Msg
     | SetDeleteStickyMode Category Sticky
     | ValidateStickyDeletion
     | CancelStickyDeletion
+      -- NoOp
+    | NoOp
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -109,6 +113,9 @@ update msg model =
             performUrlRequest urlRequest model
 
         ( ChangedUrl _, _ ) ->
+            ( model, Cmd.none )
+
+        ( NoOp, _ ) ->
             ( model, Cmd.none )
 
         -- Create Category
@@ -160,7 +167,7 @@ update msg model =
                 data =
                     EditingCategoryData split.before split.after split.current split.current
             in
-            ( EditingCategory data, Cmd.none )
+            ( EditingCategory data, Task.attempt (\_ -> NoOp) (Browser.Dom.focus "currentCategory") )
 
         ( SetEditMode _, _ ) ->
             ( model, Cmd.none )
@@ -274,7 +281,7 @@ update msg model =
                 stickyData =
                     EditingStickyData ss.before ss.after ss.current ss.current
             in
-            ( EditingStickyContent categoryData stickyData, Cmd.none )
+            ( EditingStickyContent categoryData stickyData, Task.attempt (\_ -> NoOp) (Browser.Dom.focus "currentSticky") )
 
         ( SetEditStickyMode _ _, _ ) ->
             ( model, Cmd.none )
@@ -688,6 +695,7 @@ viewEditCategoryHeader category =
             , class "rounded-full shadow-inner"
             , Html.Attributes.value category.name
             , Html.Attributes.placeholder Category.placeholder
+            , Html.Attributes.id "currentCategory"
             , Html.Events.onInput EditCategoryName
             ]
             []
@@ -728,8 +736,8 @@ viewDeleteCategory category =
                 , text "Associated notes will also be deleted."
                 , Html.br [] []
                 , Html.br [] []
-                , deleteButton True "Continue" ConfirmCategoryDeletion
-                , undoButton True "Go back" UndoCategoryDeletion
+                , deleteButton True "Delete" ConfirmCategoryDeletion
+                , undoButton True "Cancel" UndoCategoryDeletion
                 ]
     in
     div
@@ -925,6 +933,7 @@ viewEditSticky sticky =
             [ textarea
                 [ class "w-full h-full"
                 , class "resize-none"
+                , Html.Attributes.id "currentSticky"
                 , Sticky.getColorAttribute sticky.color
                 , Html.Attributes.placeholder Sticky.placeholder
                 , onInput EditStickyContent
