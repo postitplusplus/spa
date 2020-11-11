@@ -832,7 +832,7 @@ viewChangeStickyColorSticky sticky =
             ]
         , div
             [ class "break-all"
-            , class "overflow-y-auto"
+            , class "overflow-y-auto whitespace-pre-wrap"
             ]
             [ text sticky.content ]
         ]
@@ -1020,7 +1020,7 @@ viewDeleteSticky sticky =
             ]
         , div
             [ class "break-all"
-            , class "overflow-y-auto"
+            , class "overflow-y-auto whitespace-pre-wrap"
             , class "text-gray-800"
             ]
             [ text sticky.content ]
